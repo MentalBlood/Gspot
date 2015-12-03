@@ -191,6 +191,12 @@ Gspot.keypress = function(this, key, isrep)
 end
 
 Gspot.textinput = function(this, key)
+	-- Due to a bug in love or some library, textinput can give us
+	-- invalid UTF-8
+	-- (for example, on Linux with Spanish keyboard:
+	--  AltGr + Shift + "+" generates "\xAF" which does not
+	--  start with \xC0-\xFF)
+	if not key or key == "" or key:byte(1) >= 0x80 and key:byte(1) < 0xC0 then return end
 	if this.focus and this.focus.textinput then this.focus:textinput(key) end
 end
 

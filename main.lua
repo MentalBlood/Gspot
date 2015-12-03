@@ -187,6 +187,12 @@ love.keypressed = function(key, code)
 	end
 end
 
+love.textinput = function(key)
+	if gui.focus then
+		gui:textinput(key) -- only sending input to the gui if we're not using it for something else
+	end
+end
+
 love.mousepressed = function(x, y, button)
 	gui:mousepress(x, y, button) -- pretty sure you want to register mouse events
 end

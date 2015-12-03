@@ -4,6 +4,31 @@
 -- 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 -- 3. This notice may not be removed or altered from any source distribution.
 
+-- Emulation of getKeyRepeat
+local getKeyRepeat
+local osetKeyRepeat = love.keyboard.setKeyRepeat
+love.keyboard.setKeyRepeat = function(value)
+	osetKeyRepeat(value)
+	getKeyRepeat = value
+end
+
+-- Emulation of color modes
+local combineShader = love.graphics.newShader[[
+    vec4 effect(vec4 clr, sampler2D img, vec2 imgpos, vec2 scrpos)
+    {
+        vec4 pixel = texture2D(img, imgpos);
+        vec3 value = pixel.xyz + clr.xyz - vec3(0.5, 0.5, 0.5);
+        return vec4(value, pixel.w);
+    }
+  ]]
+
+local replaceShader = love.graphics.newShader[[
+    vec4 effect(vec4 clr, sampler2D img, vec2 imgpos, vec2 scrpos)
+    {
+        return texture2D(img, imgpos);
+    }
+  ]]
+
 local Gspot = {}
 
 Gspot.style = {
@@ -95,12 +120,10 @@ end
 
 Gspot.draw = function(this)
 	local ostyle = {}
-	ostyle.colormode = love.graphics.getColorMode()
 	ostyle.font = love.graphics.getFont()
 	ostyle.r, ostyle.g, ostyle.b, ostyle.a = love.graphics.getColor()
 	ostyle.scissor = {}
 	ostyle.scissor.x, ostyle.scissor.y, ostyle.scissor.w, ostyle.scissor.h = love.graphics.getScissor()
-	love.graphics.setColorMode('modulate')
 	for i, element in ipairs(this.elements) do
 		if element.display then
 			local pos, scissor = element:getpos()
@@ -122,7 +145,6 @@ Gspot.draw = function(this)
 	end
 	love.graphics.setFont(ostyle.font)
 	love.graphics.setColor(ostyle.r, ostyle.g, ostyle.b, ostyle.a)
-	love.graphics.setColorMode(ostyle.colormode)
 	if ostyle.scissor.x then love.graphics.setScissor(ostyle.scissor.x, ostyle.scissor.y, ostyle.scissor.w, ostyle.scissor.h)
 	else love.graphics.setScissor() end
 end
@@ -161,11 +183,15 @@ Gspot.mouserelease = function(this, x, y, button)
 	this.drag = nil
 end
 
-Gspot.keypress = function(this, key, code)
+Gspot.keypress = function(this, key, isrep)
 	if this.focus then
 		if (key == 'return' or key == 'kpenter') and this.focus.done then this.focus:done() end
-		if this.focus and this.focus.keypress then this.focus:keypress(key, code) end
+		if this.focus and this.focus.keypress then this.focus:keypress(key, isrep) end
 	end
+end
+
+Gspot.textinput = function(this, key)
+	if this.focus and this.focus.textinput then this.focus:textinput(key) end
 end
 
 Gspot.getmouse = function(this)
@@ -215,16 +241,15 @@ Gspot.setfocus = function(this, element)
 	if element then
 		this.focus = element
 		if element.keyrepeat and element.keyrepeat > 0 then
-			this.orepeat.delay, this.orepeat.interval = love.keyboard.getKeyRepeat()
-			if element.keydelay then love.keyboard.setKeyRepeat(element.keydelay, element.keyrepeat)
-			else love.keyboard.setKeyRepeat(element.keyrepeat, element.keyrepeat) end
+			this.orepeat.delay = getKeyRepeat or 0
+			love.keyboard.setKeyRepeat(element.keydelay ~= 0)
 		end
 	end
 end
 
 Gspot.unfocus = function(this)
 	this.focus = nil
-	if this.orepeat then love.keyboard.setKeyRepeat(this.orepeat.delay, this.orepeat.interval) end
+	if this.orepeat then love.keyboard.setKeyRepeat(this.orepeat.delay ~= 0) end
 end
 
 local pos = {
@@ -347,9 +372,21 @@ Gspot.util = {
 	
 	drawimg = function(this, pos)
 		love.graphics.setColor({255, 255, 255, 255})
-		love.graphics.setColorMode(this.style.imagemode)
-		love.graphics.draw(this.img, (pos.x + (pos.w / 2)) - (this.img:getWidth()) / 2, (pos.y + (pos.h / 2)) - (this.img:getHeight() / 2))
-		love.graphics.setColorMode('modulate')
+		if love.graphics.getShader() == nil then
+			if this.style.imagemode == "modulate" then
+				-- do nothing
+			elseif this.style.imagemode == "combine" then
+				-- emulate combine color mode
+				love.graphics.setShader(combineShader)
+			else
+				-- emulate replace color mode
+				love.graphics.setShader(replaceShader)
+			end
+			love.graphics.draw(this.img, (pos.x + (pos.w / 2)) - (this.img:getWidth()) / 2, (pos.y + (pos.h / 2)) - (this.img:getHeight() / 2))
+			love.graphics.setShader()
+		else
+			love.graphics.draw(this.img, (pos.x + (pos.w / 2)) - (this.img:getWidth()) / 2, (pos.y + (pos.h / 2)) - (this.img:getHeight() / 2))
+		end
 	end,
 	
 	setfont = function(this, font, size)
@@ -741,7 +778,7 @@ Gspot.input = {
 	end,
 	click = function(this) this:focus() end,
 	done = function(this) this.Gspot:unfocus() end,
-	keypress = function(this, key, code)
+	keypress = function(this, key, isrep)
 		-- fragments attributed to vrld's Quickie : https://github.com/vrld/Quickie
 		if key == 'backspace' then
 			this.value = this.value:sub(1, this.cursor - 1)..this.value:sub(this.cursor + 1)
@@ -757,15 +794,17 @@ Gspot.input = {
 			this.cursor = 0
 		elseif key == 'end' then
 			this.cursor = this.value:len()
-		elseif code >= 32 and code < 127 then
-			this.value = this.value:sub(1, this.cursor)..string.char(code)..this.value:sub(this.cursor + 1)
-			this.cursor = this.cursor + 1
 		elseif key == 'tab' and this.next and this.next.elementtype then
 			this.next:focus()
 		elseif key == 'escape' then
 			this.Gspot:unfocus()
 		end
 		-- /fragments
+	end,
+
+	textinput = function(this, key)
+		this.value = this.value:sub(1, this.cursor) .. key .. this.value:sub(this.cursor + 1)
+		this.cursor = this.cursor + #key
 	end,
 }
 setmetatable(Gspot.input, {__index = Gspot.util, __call = Gspot.input.load})
@@ -796,7 +835,7 @@ Gspot.scroll = {
 	wheeldown = function(this)
 		if this.values.axis == 'horizontal' then this:step(1) else this:step(-1) end
 	end,
-	keypress = function(this, key, code)
+	keypress = function(this, key, isrep)
 		if key == 'left' and this.values.axis == 'horizontal' then
 			this:step(1)
 		elseif key == 'right' and this.values.axis == 'horizontal' then

@@ -637,6 +637,11 @@ Gspot.typetext = {
 		element.updateinterval = 0.1
 		element.update = function(this, dt)
 			this.values.cursor = this.values.cursor + 1
+			local code = this.values.text:byte(this.values.cursor + 1)
+			while code and code >= 0x80 and code < 0xC0 do
+				this.values.cursor = this.values.cursor + 1
+				code = this.values.text:byte(this.values.cursor + 1)
+			end
 			this.label = this.values.text:sub(1, this.values.cursor)
 		end
 		return Gspot:add(element)
@@ -763,8 +768,12 @@ Gspot.input = {
 		local str = tostring(this.value)
 		local offset = 0
 		while this.style.font:getWidth(str) > pos.w - (this.style.unit / 2) do
-			str = str:sub(2)
-			offset = offset + 1
+			local code
+			repeat
+				offset = offset + 1
+				code = str:byte(offset)
+			until code == nil or code < 0x80 or code >= 0xC0
+			str = str:sub(offset)
 		end
 		love.graphics.print(str, pos.x + (this.style.unit / 4), pos.y + ((pos.h - this.style.font:getHeight('dp')) / 2))
 		if this == this.Gspot.focus and this.cursorlife < 0.5 then
@@ -781,14 +790,40 @@ Gspot.input = {
 	keypress = function(this, key, isrep)
 		-- fragments attributed to vrld's Quickie : https://github.com/vrld/Quickie
 		if key == 'backspace' then
-			this.value = this.value:sub(1, this.cursor - 1)..this.value:sub(this.cursor + 1)
+			local cur = this.cursor
+			local code = this.value:byte(cur)
+			if code and code >= 0x80 and code < 0xC0 then
+				repeat
+					this.cursor = this.cursor - 1
+					code = this.value:byte(this.cursor)
+				until not code or code < 0x80 or code >= 0xC0
+			end
 			this.cursor = math.max(0, this.cursor - 1)
+			this.value = this.value:sub(1, this.cursor)..this.value:sub(cur + 1)
 		elseif key == 'delete' then
-			this.value = this.value:sub(1, this.cursor)..this.value:sub(this.cursor + 2)
-			this.cursor = math.min(this.value:len(), this.cursor)
+			local cur = this.cursor
+			local code = this.value:byte(cur + 2)
+			while code and code >= 0x80 and code < 0xC0 do
+				this.cursor = this.cursor + 1
+				code = this.value:byte(this.cursor + 2)
+			end
+			this.value = this.value:sub(1, cur)..this.value:sub(this.cursor + 2)
+			this.cursor = math.min(this.value:len(), cur)
 		elseif key == 'left' then
+			local code = this.value:byte(this.cursor)
+			if code and code >= 0x80 and code < 0xC0 then
+				repeat
+					this.cursor = this.cursor - 1
+					code = this.value:byte(this.cursor)
+				until not code or code < 0x80 or code >= 0xC0
+			end
 			this.cursor = math.max(0, this.cursor - 1)
 		elseif key == 'right' then
+			local code = this.value:byte(this.cursor + 2)
+			while code and code >= 0x80 and code < 0xC0 do
+				this.cursor = this.cursor + 1
+				code = this.value:byte(this.cursor + 2)
+			end
 			this.cursor = math.min(this.value:len(), this.cursor + 1)
 		elseif key == 'home' then
 			this.cursor = 0

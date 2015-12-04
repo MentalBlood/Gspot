@@ -765,7 +765,7 @@ Gspot.input = {
 	end,
 	update = function(this, dt)
 		if this.Gspot.focus == this then
-			if this.cursorlife < 1 then this.cursorlife = 0
+			if this.cursorlife >= 1 then this.cursorlife = 0
 			else this.cursorlife = this.cursorlife + dt end
 		end
 	end,

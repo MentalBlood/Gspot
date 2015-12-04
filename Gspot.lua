@@ -412,6 +412,7 @@ Gspot.util = {
 	getpos = function(this, scissor)
 		local pos = this.Gspot:pos(this)
 		if this.parent then
+			local ppos = 0
 			ppos, scissor = this.parent:getpos()
 			pos = pos + ppos
 			if this.parent:type() == 'Gspot.element.scrollgroup' and this ~= this.parent.scrollv and  this ~= this.parent.scrollh then
@@ -870,6 +871,10 @@ Gspot.scroll = {
 		local pos = this:getpos()
 		this.values.current = this.values.min + ((this.values.max - this.values.min) * ((this.values.axis == 'vertical' and ((math.min(math.max(pos.y, y), (pos.y + pos.h)) - pos.y) / pos.h)) or ((math.min(math.max(pos.x, x), (pos.x + pos.w)) - pos.x) / pos.w)))
 	end,
+	rdrag = function(this, x, y)
+		local pos = this:getpos()
+		this.values.current = this.values.min + ((this.values.max - this.values.min) * ((this.values.axis == 'vertical' and ((math.min(math.max(pos.y, y), (pos.y + pos.h)) - pos.y) / pos.h)) or ((math.min(math.max(pos.x, x), (pos.x + pos.w)) - pos.x) / pos.w)))
+	end,
 	wheelup = function(this)
 		if this.values.axis == 'horizontal' then this:step(-1) else this:step(1) end
 	end,
@@ -898,7 +903,7 @@ Gspot.scroll = {
 		this:rect(pos)
 		if this == this.Gspot.mousein or this == this.Gspot.drag or this == this.Gspot.focus then love.graphics.setColor(this.style.fg)
 		else love.graphics.setColor(this.style.hilite) end
-		handlepos = this.Gspot:pos({x = (this.values.axis == 'horizontal' and math.min(pos.x + (pos.w - this.style.unit), math.max(pos.x, pos.x + (pos.w * (this.values.current / (this.values.max - this.values.min))) - (this.style.unit / 2)))) or pos.x, y = (this.values.axis == 'vertical' and math.min(pos.y + (pos.h - this.style.unit), math.max(pos.y, pos.y + (pos.h * (this.values.current / (this.values.max - this.values.min))) - (this.style.unit / 2)))) or pos.y, w = this.style.unit, h = this.style.unit, r = pos.r})
+		local handlepos = this.Gspot:pos({x = (this.values.axis == 'horizontal' and math.min(pos.x + (pos.w - this.style.unit), math.max(pos.x, pos.x + (pos.w * (this.values.current / (this.values.max - this.values.min))) - (this.style.unit / 2)))) or pos.x, y = (this.values.axis == 'vertical' and math.min(pos.y + (pos.h - this.style.unit), math.max(pos.y, pos.y + (pos.h * (this.values.current / (this.values.max - this.values.min))) - (this.style.unit / 2)))) or pos.y, w = this.style.unit, h = this.style.unit, r = pos.r})
 		this:drawshape(handlepos)
 		if this.label then
 			love.graphics.setColor(this.style.fg)

@@ -25,14 +25,45 @@ local combineShader = love.graphics.newShader[[
         vec3 value = pixel.xyz + clr.xyz - vec3(0.5, 0.5, 0.5);
         return vec4(value, pixel.w);
     }
-  ]]
+]]
 
 local replaceShader = love.graphics.newShader[[
     vec4 effect(vec4 clr, sampler2D img, vec2 imgpos, vec2 scrpos)
     {
         return texture2D(img, imgpos);
     }
-  ]]
+]]
+
+-- Return the position of the first byte of the given UTF-8 char.
+local function utf8char_begin(s, idx)
+	-- Precondition:
+	--assert(idx >= 1 and idx <= #s + 1)
+	local byte = s:byte(idx)
+	while byte and byte >= 0x80 and byte < 0xC0 do
+		idx = idx - 1
+		byte = s:byte(idx)
+	end
+	-- Postcondition:
+	--assert(idx >= 1 and idx <= #s + 1)
+	return idx
+end
+
+-- Return the position immediately after the current UTF-8 char.
+local function utf8char_after(s, idx)
+	-- Precondition:
+	--assert(idx >= 1 and idx <= #s + 1)
+	if idx <= #s then
+		idx = idx + 1
+		local byte = s:byte(idx)
+		while byte and byte >= 0x80 and byte < 0xC0 do
+			idx = idx + 1
+			byte = s:byte(idx)
+		end
+	end
+	-- Postcondition:
+	--assert(idx >= 1 and idx <= #s + 1)
+	return idx
+end
 
 local Gspot = {}
 
@@ -780,11 +811,7 @@ Gspot.input = {
 		local str = tostring(this.value)
 		local offset = 0
 		while this.style.font:getWidth(str) > pos.w - (this.style.unit / 2) do
-			local code
-			repeat
-				offset = offset + 1
-				code = str:byte(offset)
-			until code == nil or code < 0x80 or code >= 0xC0
+			offset = utf8char_after(str, offset)
 			str = str:sub(offset)
 		end
 		love.graphics.print(str, pos.x + (this.style.unit / 4), pos.y + ((pos.h - this.style.font:getHeight('dp')) / 2))
@@ -803,40 +830,19 @@ Gspot.input = {
 		-- fragments attributed to vrld's Quickie : https://github.com/vrld/Quickie
 		if key == 'backspace' then
 			local cur = this.cursor
-			local code = this.value:byte(cur)
-			if code and code >= 0x80 and code < 0xC0 then
-				repeat
-					this.cursor = this.cursor - 1
-					code = this.value:byte(this.cursor)
-				until not code or code < 0x80 or code >= 0xC0
+			if cur > 0 then
+				this.cursor = utf8char_begin(this.value, cur) - 1
+				this.value = this.value:sub(1, this.cursor)..this.value:sub(cur + 1)
 			end
-			this.cursor = math.max(0, this.cursor - 1)
-			this.value = this.value:sub(1, this.cursor)..this.value:sub(cur + 1)
 		elseif key == 'delete' then
-			local cur = this.cursor
-			local code = this.value:byte(cur + 2)
-			while code and code >= 0x80 and code < 0xC0 do
-				this.cursor = this.cursor + 1
-				code = this.value:byte(this.cursor + 2)
-			end
-			this.value = this.value:sub(1, cur)..this.value:sub(this.cursor + 2)
-			this.cursor = math.min(this.value:len(), cur)
+			local cur = utf8char_after(this.value, this.cursor + 1)
+			this.value = this.value:sub(1, this.cursor)..this.value:sub(cur)
 		elseif key == 'left' then
-			local code = this.value:byte(this.cursor)
-			if code and code >= 0x80 and code < 0xC0 then
-				repeat
-					this.cursor = this.cursor - 1
-					code = this.value:byte(this.cursor)
-				until not code or code < 0x80 or code >= 0xC0
+			if this.cursor > 0 then
+				this.cursor = utf8char_begin(this.value, this.cursor) - 1
 			end
-			this.cursor = math.max(0, this.cursor - 1)
 		elseif key == 'right' then
-			local code = this.value:byte(this.cursor + 2)
-			while code and code >= 0x80 and code < 0xC0 do
-				this.cursor = this.cursor + 1
-				code = this.value:byte(this.cursor + 2)
-			end
-			this.cursor = math.min(this.value:len(), this.cursor + 1)
+			this.cursor = utf8char_after(this.value, this.cursor + 1) - 1
 		elseif key == 'home' then
 			this.cursor = 0
 		elseif key == 'end' then

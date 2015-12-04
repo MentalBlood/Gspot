@@ -827,6 +827,8 @@ Gspot.input = {
 	click = function(this) this:focus() end,
 	done = function(this) this.Gspot:unfocus() end,
 	keypress = function(this, key, isrep)
+		local save_cursorlife = this.cursorlife
+		this.cursorlife = 0
 		-- fragments attributed to vrld's Quickie : https://github.com/vrld/Quickie
 		if key == 'backspace' then
 			local cur = this.cursor
@@ -851,6 +853,9 @@ Gspot.input = {
 			this.next:focus()
 		elseif key == 'escape' then
 			this.Gspot:unfocus()
+		else
+			-- all of the above reset the blink timer, but otherwise it's retained
+			this.cursorlife = save_cursorlife
 		end
 		-- /fragments
 	end,
@@ -858,6 +863,8 @@ Gspot.input = {
 	textinput = function(this, key)
 		this.value = this.value:sub(1, this.cursor) .. key .. this.value:sub(this.cursor + 1)
 		this.cursor = this.cursor + #key
+		-- reset blink timer
+		this.cursorlife = 0
 	end,
 }
 setmetatable(Gspot.input, {__index = Gspot.util, __call = Gspot.input.load})

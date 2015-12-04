@@ -763,7 +763,7 @@ Gspot.input = {
 		element.keydelay = 500
 		return Gspot:add(element)
 	end,
-	update = function(this)
+	update = function(this, dt)
 		if this.Gspot.focus == this then
 			if this.cursorlife < 1 then this.cursorlife = 0
 			else this.cursorlife = this.cursorlife + dt end
@@ -997,7 +997,7 @@ setmetatable(Gspot.feedback, {__index = Gspot.util, __call = Gspot.feedback.load
 
 Gspot.progress = {
 	load = function(this, Gspot, label, pos, parent)
-		element = Gspot:add(Gspot:element('progress', label, pos, parent))
+		local element = Gspot:add(Gspot:element('progress', label, pos, parent))
 		element.loaders = {}
 		element.values = Gspot.scrollvalues(element, {0, 0, 0, 1})
 		return element

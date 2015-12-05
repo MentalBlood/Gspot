@@ -804,14 +804,14 @@ Gspot.input = {
 		this:drawshape(pos)
 		love.graphics.setColor(this.style.fg)
 		local str = tostring(this.value)
-		local offset = 0
+		local offset = 1
 		while this.style.font:getWidth(str) > pos.w - (this.style.unit / 2) do
-			offset = utf8char_after(str, offset)
-			str = str:sub(offset)
+			offset = utf8char_after(this.value, offset)
+			str = this.value:sub(offset)
 		end
 		love.graphics.print(str, pos.x + (this.style.unit / 4), pos.y + ((pos.h - this.style.font:getHeight('dp')) / 2))
 		if this == this.Gspot.focus and this.cursorlife < 0.5 then
-			local cursorx = ((pos.x + (this.style.unit / 4)) + this.style.font:getWidth(str:sub(1, this.cursor - offset)))
+			local cursorx = ((pos.x + (this.style.unit / 4)) + this.style.font:getWidth(this.value:sub(offset, this.cursor)))
 			love.graphics.line(cursorx, pos.y + (this.style.unit / 8), cursorx, (pos.y + pos.h) - (this.style.unit / 8))
 		end
 		if this.label then

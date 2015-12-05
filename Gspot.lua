@@ -679,12 +679,7 @@ Gspot.typetext = {
 		element.values = {text = label, cursor = 1}
 		element.updateinterval = 0.1
 		element.update = function(this, dt)
-			this.values.cursor = this.values.cursor + 1
-			local code = this.values.text:byte(this.values.cursor + 1)
-			while code and code >= 0x80 and code < 0xC0 do
-				this.values.cursor = this.values.cursor + 1
-				code = this.values.text:byte(this.values.cursor + 1)
-			end
+			this.values.cursor = utf8char_after(this.values.text, this.values.cursor + 1) - 1
 			this.label = this.values.text:sub(1, this.values.cursor)
 		end
 		return Gspot:add(element)

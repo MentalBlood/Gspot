@@ -190,11 +190,11 @@ Gspot.mousepress = function(this, x, y, button)
 	if this.mousein then
 		local element = this.mousein
 		if element.elementtype ~= 'hidden' then element:getparent():setlevel() end
-		if element.drag then
-			this.drag = element
-			element.offset = {x = x - element:getpos().x, y = y - element:getpos().y}
-		end
 		if button == 'l' then
+			if element.drag then
+				this.drag = element
+				element.offset = {x = x - element:getpos().x, y = y - element:getpos().y}
+			end
 			if this.mousedt < this.dblclickinterval and element.dblclick then element:dblclick(x, y, button)
 			elseif element.click then element:click(x, y)end
 		elseif button == 'r' and element.rclick then element:rclick(x, y)

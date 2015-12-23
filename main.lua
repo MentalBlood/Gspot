@@ -9,6 +9,10 @@
 -- 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 -- 3. This notice may not be removed or altered from any source distribution.
 
+if love._version_major == 0 and love._version_minor < 9 then
+	error("This library needs love2d 0.9.0 or above")
+end
+
 gui = require('Gspot') -- import the library
 --mainmenu = gui() -- create a gui instance. don't have to do this, but you may want a gui for each gamestate so they can talk to each other, and you won't have to recontsruct the gui every time you enter a state
 
@@ -184,9 +188,9 @@ love.draw = function()
 	love.graphics.print(bg, 320, 240, math.pi / 4, 1, 1)
 end
 
-love.keypressed = function(key, code)
+love.keypressed = function(key, code, isrepeat)
 	if gui.focus then
-		gui:keypress(key, code) -- only sending input to the gui if we're not using it for something else
+		gui:keypress(key) -- only sending input to the gui if we're not using it for something else
 	else
 		if key == 'return'then -- binding enter key to input focus
 			input:focus()
@@ -204,9 +208,24 @@ love.textinput = function(key)
 	end
 end
 
+-- deal with 0.10 mouse API changes
+local buttons_by_number = { "l", "r", "m", "x1", "x2" }
 love.mousepressed = function(x, y, button)
+	if love._version_major == 0 and love._version_minor > 9 then
+		button = buttons_by_number[button]
+	end
 	gui:mousepress(x, y, button) -- pretty sure you want to register mouse events
 end
 love.mousereleased = function(x, y, button)
+	if love._version_major == 0 and love._version_minor > 9 then
+		button = buttons_by_number[button]
+	end
 	gui:mouserelease(x, y, button)
+end
+love.wheelmoved = function(x, y)
+	if y ~= 0 then
+		local button = y > 0 and "wu" or "wd"
+		x, y = love.mouse.getPosition()
+		gui:mousepress(x, y, button)
+	end
 end

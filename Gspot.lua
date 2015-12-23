@@ -65,6 +65,10 @@ local function utf8char_after(s, idx)
 	return idx
 end
 
+-- Deal with love.mouse API changes in 0.10
+local mouseL = love._version_major == 0 and love._version_minor > 9 and 1 or 'l'
+local mouseR = love._version_major == 0 and love._version_minor > 9 and 2 or 'r'
+
 local Gspot = {}
 
 Gspot.style = {
@@ -113,13 +117,13 @@ Gspot.update = function(this, dt)
 	this.mouseover = false
 	if this.drag then
 		local element = this.drag
-		if love.mouse.isDown('l') then
+		if love.mouse.isDown(mouseL) then
 			if type(element.drag) == 'function' then element:drag(mouse.x, mouse.y)
 			else
 				element.pos.y = mouse.y - element.offset.y
 				element.pos.x = mouse.x - element.offset.x
 			end
-		elseif love.mouse.isDown('r') then
+		elseif love.mouse.isDown(mouseR) then
 			if type(element.rdrag) == 'function' then element:rdrag(mouse.x, mouse.y)
 			else
 				element.pos.y = mouse.y - element.offset.y
@@ -219,10 +223,10 @@ Gspot.mouserelease = function(this, x, y, button)
 	this.drag = nil
 end
 
-Gspot.keypress = function(this, key, isrep)
+Gspot.keypress = function(this, key)
 	if this.focus then
 		if (key == 'return' or key == 'kpenter') and this.focus.done then this.focus:done() end
-		if this.focus and this.focus.keypress then this.focus:keypress(key, isrep) end
+		if this.focus and this.focus.keypress then this.focus:keypress(key) end
 	end
 end
 
@@ -662,6 +666,7 @@ Gspot.text = {
 	setfont = function(this, font, size)
 		this.Gspot.util.setfont(this, font, size)
 		local width, lines = this.style.font:getWrap(this.label, this.pos.w)
+		if type(lines) == "table" then lines = #lines end
 		lines = math.max(lines, 1)
 		this.pos.h = (this.style.font:getHeight('dp') * lines) + (this.style.unit - this.style.font:getHeight('dp'))
 	end,
@@ -821,7 +826,7 @@ Gspot.input = {
 	end,
 	click = function(this) this:focus() end,
 	done = function(this) this.Gspot:unfocus() end,
-	keypress = function(this, key, isrep)
+	keypress = function(this, key)
 		local save_cursorlife = this.cursorlife
 		this.cursorlife = 0
 		-- fragments attributed to vrld's Quickie : https://github.com/vrld/Quickie
@@ -894,7 +899,7 @@ Gspot.scroll = {
 	wheeldown = function(this)
 		if this.values.axis == 'horizontal' then this:step(1) else this:step(-1) end
 	end,
-	keypress = function(this, key, isrep)
+	keypress = function(this, key)
 		if key == 'left' and this.values.axis == 'horizontal' then
 			this:step(1)
 		elseif key == 'right' and this.values.axis == 'horizontal' then

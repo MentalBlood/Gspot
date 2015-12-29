@@ -209,23 +209,12 @@ love.textinput = function(key)
 end
 
 -- deal with 0.10 mouse API changes
-local buttons_by_number = { "l", "r", "m", "x1", "x2" }
 love.mousepressed = function(x, y, button)
-	if love._version_major == 0 and love._version_minor > 9 then
-		button = buttons_by_number[button]
-	end
 	gui:mousepress(x, y, button) -- pretty sure you want to register mouse events
 end
 love.mousereleased = function(x, y, button)
-	if love._version_major == 0 and love._version_minor > 9 then
-		button = buttons_by_number[button]
-	end
 	gui:mouserelease(x, y, button)
 end
 love.wheelmoved = function(x, y)
-	if y ~= 0 then
-		local button = y > 0 and "wu" or "wd"
-		x, y = love.mouse.getPosition()
-		gui:mousepress(x, y, button)
-	end
+	gui:mousewheel(x, y)
 end

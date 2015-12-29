@@ -198,14 +198,14 @@ Gspot.mousepress = function(this, x, y, button)
 	if this.mousein then
 		local element = this.mousein
 		if element.elementtype ~= 'hidden' then element:getparent():setlevel() end
-		if button == 'l' then
+		if button == mouseL then
 			if element.drag then
 				this.drag = element
 				element.offset = {x = x - element:getpos().x, y = y - element:getpos().y}
 			end
 			if this.mousedt < this.dblclickinterval and element.dblclick then element:dblclick(x, y, button)
 			elseif element.click then element:click(x, y)end
-		elseif button == 'r' and element.rclick then element:rclick(x, y)
+		elseif button == mouseR and element.rclick then element:rclick(x, y)
 		elseif button == 'wu' and element.wheelup then element:wheelup(x, y)
 		elseif button == 'wd' and element.wheeldown then element:wheeldown(x, y)
 		end
@@ -216,7 +216,7 @@ end
 Gspot.mouserelease = function(this, x, y, button)
 	if this.drag then
 		local element = this.drag
-		if button == 'r' then
+		if button == mouseR then
 			if element.rdrop then element:rdrop(this.mouseover) end
 			if this.mouseover and this.mouseover.rcatch then this.mouseover:rcatch(element.id) end
 		else
@@ -225,6 +225,17 @@ Gspot.mouserelease = function(this, x, y, button)
 		end
 	end
 	this.drag = nil
+end
+
+Gspot.mousewheel = function(this, x, y)
+	if y ~= 0 and this.mousein then
+		local element = this.mousein
+		local call = y > 0 and element.wheelup or element.wheeldown
+		if call then
+			local mx, my = love.mouse.getPosition()
+			call(element, mx, my)
+		end
+	end
 end
 
 Gspot.keypress = function(this, key)

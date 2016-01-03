@@ -9,14 +9,6 @@
 -- 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 -- 3. This notice may not be removed or altered from any source distribution.
 
--- Emulation of getKeyRepeat
-local getKeyRepeat
-local osetKeyRepeat = love.keyboard.setKeyRepeat
-love.keyboard.setKeyRepeat = function(value)
-	osetKeyRepeat(value)
-	getKeyRepeat = value
-end
-
 -- Emulation of color modes
 local combineShader = love.graphics.newShader[[
     vec4 effect(vec4 clr, sampler2D img, vec2 imgpos, vec2 scrpos)
@@ -302,7 +294,7 @@ Gspot.setfocus = function(this, element)
 	if element then
 		this.focus = element
 		if element.keyrepeat and element.keyrepeat > 0 then
-			this.orepeat.delay = getKeyRepeat or 0
+			this.orepeat.delay = love.keyboard.hasKeyRepeat() or 0
 			love.keyboard.setKeyRepeat(element.keydelay ~= 0)
 		end
 	end

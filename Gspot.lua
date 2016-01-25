@@ -734,13 +734,12 @@ Gspot.button = {
 			else love.graphics.setColor(this.style.default) end
 		end
 		this:drawshape(pos)
+		love.graphics.setColor(this.style.labelfg or this.style.fg)
 		if this.shape == 'circle' then
 			if this.img then this:drawimg(pos) end
-			love.graphics.setColor(this.style.labelfg or this.style.fg)
 			if this.label then lgprint(this.label, (pos.x + pos.r) - (this.style.font:getWidth(this.label) / 2), (this.img and (pos.y + (pos.r * 2)) + ((this.style.unit - this.style.font:getHeight(this.label)) / 2)) or (pos.y + pos.r) - (this.style.font:getHeight(this.label) / 2)) end
 		else
 			if this.img then this:drawimg(pos) end
-			love.graphics.setColor(this.style.labelfg or this.style.fg)
 			if this.label then lgprint(this.label, (pos.x + (pos.w / 2)) - (this.style.font:getWidth(this.label) / 2), (this.img and pos.y + ((this.style.unit - this.style.font:getHeight(this.label)) / 2)) or (pos.y + (pos.h / 2)) - (this.style.font:getHeight(this.label) / 2)) end
 		end
 	end,

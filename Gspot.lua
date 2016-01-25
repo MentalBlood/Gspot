@@ -65,8 +65,8 @@ local mouseL = version >= 001000 and 1 or 'l'
 local mouseR = version >= 001000 and 2 or 'r'
 
 -- 0.10.0 blurs text if rendered on fractional coordinates
-local lgprint = version < 001000 and love.graphics.print or function(text, x, y, ...) love.graphics.print(text, math.floor(x), math.floor(y), ...) end
-local lgprintf = version < 001000 and love.graphics.printf or function(text, x, y, ...) love.graphics.printf(text, math.floor(x), math.floor(y), ...) end
+local lgprint = version < 001000 and love.graphics.print or function(text, x, y, ...) love.graphics.print(text, math.floor(x+0.5), math.floor(y+0.5), ...) end
+local lgprintf = version < 001000 and love.graphics.printf or function(text, x, y, ...) love.graphics.printf(text, math.floor(x+0.5), math.floor(y+0.5), ...) end
 
 local Gspot = {}
 

@@ -802,6 +802,7 @@ Gspot.input = {
 		return Gspot:add(element)
 	end,
 	update = function(this, dt)
+		if this.cursor > #this.value then this.cursor = #this.value end
 		if this.Gspot.focus == this then
 			if this.cursorlife >= 1 then this.cursorlife = 0
 			else this.cursorlife = this.cursorlife + dt end

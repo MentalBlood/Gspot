@@ -19,13 +19,6 @@ local combineShader = love.graphics.newShader[[
     }
 ]]
 
-local replaceShader = love.graphics.newShader[[
-    vec4 effect(vec4 clr, sampler2D img, vec2 imgpos, vec2 scrpos)
-    {
-        return Texel(img, imgpos);
-    }
-]]
-
 -- Simplify version checking
 local version = love._version_major * 10000 + love._version_minor * 100 + love._version_revision
 
@@ -427,19 +420,16 @@ Gspot.util = {
 	end,
 	
 	drawimg = function(this, pos)
-		love.graphics.setColor({255, 255, 255, 255})
+		love.graphics.setColor(255, 255, 255, 255)
 		if love.graphics.getShader() == nil then
-			if this.style.imagemode == "modulate" then
-				-- do nothing
-			elseif this.style.imagemode == "combine" then
+			if this.style.imagemode == "combine" then
 				-- emulate combine color mode
 				love.graphics.setShader(combineShader)
-			else
-				-- emulate replace color mode
-				love.graphics.setShader(replaceShader)
 			end
 			love.graphics.draw(this.img, (pos.x + (pos.w / 2)) - (this.img:getWidth()) / 2, (pos.y + (pos.h / 2)) - (this.img:getHeight() / 2))
-			love.graphics.setShader()
+			if this.style.imagemode == "combine" then
+				love.graphics.setShader()
+			end
 		else
 			love.graphics.draw(this.img, (pos.x + (pos.w / 2)) - (this.img:getWidth()) / 2, (pos.y + (pos.h / 2)) - (this.img:getHeight() / 2))
 		end

@@ -69,7 +69,7 @@ Gspot.style = {
 	imagemode = 'replace',
 	fg = {255, 255, 255, 255},
 	bg = {64, 64, 64, 255},
-	labelfg = nil, -- uses fg when absent
+	labelfg = nil, -- defaults to fg when absent
 	default = {96, 96, 96, 255},
 	hilite = {128, 128, 128, 255},
 	focus = {160, 160, 160, 255},
@@ -422,6 +422,7 @@ Gspot.util = {
 	end,
 	
 	drawimg = function(this, pos)
+		local r, g, b, a = love.graphics.getColor()
 		love.graphics.setColor(255, 255, 255, 255)
 		if love.graphics.getShader() == nil then
 			if this.style.imagemode == "combine" then
@@ -435,6 +436,7 @@ Gspot.util = {
 		else
 			love.graphics.draw(this.img, (pos.x + (pos.w / 2)) - (this.img:getWidth()) / 2, (pos.y + (pos.h / 2)) - (this.img:getHeight() / 2))
 		end
+		love.graphics.setColor(r, g, b, a)
 	end,
 	
 	setfont = function(this, font, size)

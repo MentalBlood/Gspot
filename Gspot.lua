@@ -26,6 +26,9 @@ local replaceShader = love.graphics.newShader[[
     }
 ]]
 
+-- Simplify version checking
+local version = love._version_major * 10000 + love._version_minor * 100 + love._version_revision
+
 -- Return the position of the first byte of the given UTF-8 char.
 local function utf8char_begin(s, idx)
 	-- Precondition:
@@ -58,12 +61,12 @@ local function utf8char_after(s, idx)
 end
 
 -- Deal with love.mouse API changes in 0.10
-local mouseL = love._version_major == 0 and love._version_minor > 9 and 1 or 'l'
-local mouseR = love._version_major == 0 and love._version_minor > 9 and 2 or 'r'
+local mouseL = version >= 001000 and 1 or 'l'
+local mouseR = version >= 001000 and 2 or 'r'
 
 -- 0.10.0 blurs text if rendered on fractional coordinates
-local lgprint = love._version_major == 0 and love._version_minor < 10 and love.graphics.print or function(text, x, y, ...) love.graphics.print(text, math.floor(x), math.floor(y), ...) end
-local lgprintf = love._version_major == 0 and love._version_minor < 10 and love.graphics.printf or function(text, x, y, ...) love.graphics.printf(text, math.floor(x), math.floor(y), ...) end
+local lgprint = version < 001000 and love.graphics.print or function(text, x, y, ...) love.graphics.print(text, math.floor(x), math.floor(y), ...) end
+local lgprintf = version < 001000 and love.graphics.printf or function(text, x, y, ...) love.graphics.printf(text, math.floor(x), math.floor(y), ...) end
 
 local Gspot = {}
 

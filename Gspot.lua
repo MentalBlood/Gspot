@@ -13,7 +13,7 @@
 local combineShader = love.graphics.newShader[[
     vec4 effect(vec4 clr, sampler2D img, vec2 imgpos, vec2 scrpos)
     {
-        vec4 pixel = texture2D(img, imgpos);
+        vec4 pixel = Texel(img, imgpos);
         vec3 value = pixel.xyz + clr.xyz - vec3(0.5, 0.5, 0.5);
         return vec4(value, pixel.w);
     }
@@ -22,7 +22,7 @@ local combineShader = love.graphics.newShader[[
 local replaceShader = love.graphics.newShader[[
     vec4 effect(vec4 clr, sampler2D img, vec2 imgpos, vec2 scrpos)
     {
-        return texture2D(img, imgpos);
+        return Texel(img, imgpos);
     }
 ]]
 

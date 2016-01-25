@@ -69,6 +69,7 @@ Gspot.style = {
 	imagemode = 'replace',
 	fg = {255, 255, 255, 255},
 	bg = {64, 64, 64, 255},
+	labelfg = nil, -- uses fg when absent
 	default = {96, 96, 96, 255},
 	hilite = {128, 128, 128, 255},
 	focus = {160, 160, 160, 255},
@@ -82,6 +83,7 @@ Gspot.load = function(this)
 			imagemode = this.style.imagemode,
 			fg = this.style.fg,
 			bg = this.style.bg,
+			labelfg = this.style.labelfg,
 			default = this.style.default,
 			hilite = this.style.hilite,
 			focus = this.style.focus,
@@ -622,7 +624,7 @@ Gspot.group = {
 		love.graphics.setColor(this.style.bg)
 		this:drawshape(pos)
 		if this.label then
-			love.graphics.setColor(this.style.fg)
+			love.graphics.setColor(this.style.labelfg or this.style.fg)
 			lgprint(this.label, pos.x + ((pos.w - this.style.font:getWidth(this.label)) / 2), pos.y + ((this.style.unit - this.style.font:getHeight('dp')) / 2))
 		end
 	end,
@@ -671,7 +673,7 @@ Gspot.text = {
 		this.pos.h = (this.style.font:getHeight('dp') * lines) + (this.style.unit - this.style.font:getHeight('dp'))
 	end,
 	draw = function(this, pos)
-		love.graphics.setColor(this.style.fg)
+		love.graphics.setColor(this.style.labelfg or this.style.fg)
 		if this.autosize then lgprint(this.label, pos.x + (this.style.unit / 4), pos.y + ((this.style.unit - this.style.font:getHeight('dp')) / 2))
 		else lgprintf(this.label, pos.x + (this.style.unit / 4), pos.y + ((this.style.unit - this.style.font:getHeight('dp')) / 2), (this.autosize and pos.w) or  pos.w - (this.style.unit / 2), 'left') end
 	end,
@@ -710,7 +712,7 @@ Gspot.image = {
 			this:drawimg(pos)
 		end
 		if this.label then
-			love.graphics.setColor(this.style.fg)
+			love.graphics.setColor(this.style.labelfg or this.style.fg)
 			lgprint(this.label, pos.x + ((pos.w - this.style.font:getWidth(this.label)) / 2), (pos.y + pos.h) + ((this.style.unit - this.style.font:getHeight('dp')) / 2))
 		end
 	end,
@@ -730,12 +732,13 @@ Gspot.button = {
 			else love.graphics.setColor(this.style.default) end
 		end
 		this:drawshape(pos)
-		love.graphics.setColor(this.style.fg)
 		if this.shape == 'circle' then
 			if this.img then this:drawimg(pos) end
+			love.graphics.setColor(this.style.labelfg or this.style.fg)
 			if this.label then lgprint(this.label, (pos.x + pos.r) - (this.style.font:getWidth(this.label) / 2), (this.img and (pos.y + (pos.r * 2)) + ((this.style.unit - this.style.font:getHeight(this.label)) / 2)) or (pos.y + pos.r) - (this.style.font:getHeight(this.label) / 2)) end
 		else
 			if this.img then this:drawimg(pos) end
+			love.graphics.setColor(this.style.labelfg or this.style.fg)
 			if this.label then lgprint(this.label, (pos.x + (pos.w / 2)) - (this.style.font:getWidth(this.label) / 2), (this.img and pos.y + ((this.style.unit - this.style.font:getHeight(this.label)) / 2)) or (pos.y + (pos.h / 2)) - (this.style.font:getHeight(this.label) / 2)) end
 		end
 	end,
@@ -777,7 +780,7 @@ Gspot.checkbox = {
 			this:drawshape(this.Gspot:pos({x = pos.x + (pos.w / 4), y = pos.y + (pos.h / 4), w = pos.w / 2, h = pos.h / 2, r = pos.r and pos.r / 2}))
 		end
 		if this.label then
-			love.graphics.setColor(this.style.fg)
+			love.graphics.setColor(this.style.labelfg or this.style.fg)
 			lgprint(this.label, pos.x + pos.w + (this.style.unit / 2), pos.y + ((this.pos.h - this.style.font:getHeight(this.label)) / 2))
 		end
 	end,
@@ -821,7 +824,7 @@ Gspot.input = {
 			love.graphics.line(cursorx, pos.y + (this.style.unit / 8), cursorx, (pos.y + pos.h) - (this.style.unit / 8))
 		end
 		if this.label then
-			love.graphics.setColor(this.style.fg)
+			love.graphics.setColor(this.style.labelfg or this.style.fg)
 			lgprint(this.label, pos.x - ((this.style.unit / 2) + this.style.font:getWidth(this.label)), pos.y + ((this.pos.h - this.style.font:getHeight('dp')) / 2))
 		end
 	end,
@@ -925,7 +928,7 @@ Gspot.scroll = {
 		local handlepos = this.Gspot:pos({x = (this.values.axis == 'horizontal' and math.min(pos.x + (pos.w - this.style.unit), math.max(pos.x, pos.x + (pos.w * (this.values.current / (this.values.max - this.values.min))) - (this.style.unit / 2)))) or pos.x, y = (this.values.axis == 'vertical' and math.min(pos.y + (pos.h - this.style.unit), math.max(pos.y, pos.y + (pos.h * (this.values.current / (this.values.max - this.values.min))) - (this.style.unit / 2)))) or pos.y, w = this.style.unit, h = this.style.unit, r = pos.r})
 		this:drawshape(handlepos)
 		if this.label then
-			love.graphics.setColor(this.style.fg)
+			love.graphics.setColor(this.style.labelfg or this.style.fg)
 			lgprint(this.label, (this.values.axis == 'horizontal' and pos.x - ((this.style.unit / 2) + this.style.font:getWidth(this.label))) or pos.x + ((pos.w - this.style.font:getWidth(this.label)) / 2), (this.values.axis == 'vertical' and (pos.y + pos.h) + ((this.style.unit - this.style.font:getHeight('dp')) / 2)) or pos.y + ((this.style.unit - this.style.font:getHeight('dp')) / 2))
 		end
 	end,
@@ -946,7 +949,7 @@ Gspot.scrollgroup = {
 		love.graphics.setColor(this.style.bg)
 		this:drawshape(pos)
 		if this.label then
-			love.graphics.setColor(this.style.fg)
+			love.graphics.setColor(this.style.labelfg or this.style.fg)
 			lgprint(this.label, pos.x + ((pos.w - this.style.font:getWidth(this.label)) / 2), pos.y + ((this.style.unit - this.style.font:getHeight(this.label)) / 2))
 		end
 	end,
@@ -1034,7 +1037,7 @@ Gspot.progress = {
 		love.graphics.setColor(this.style.fg)
 		this:rect({x = pos.x, y = pos.y, w = pos.w * (this.values.current / this.values.max), h = pos.h})
 		if this.label then
-			love.graphics.setColor(this.style.fg)
+			love.graphics.setColor(this.style.labelfg or this.style.fg)
 			lgprint(this.label, pos.x - ((this.style.unit / 2) + this.style.font:getWidth(this.label)), pos.y + ((this.pos.h - this.style.font:getHeight('dp')) / 2))
 		end
 	end,

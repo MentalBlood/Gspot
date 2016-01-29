@@ -9,16 +9,6 @@
 -- 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 -- 3. This notice may not be removed or altered from any source distribution.
 
--- Emulation of color modes
-local combineShader = love.graphics.newShader[[
-    vec4 effect(vec4 clr, sampler2D img, vec2 imgpos, vec2 scrpos)
-    {
-        vec4 pixel = Texel(img, imgpos);
-        vec3 value = pixel.xyz + clr.xyz - vec3(0.5, 0.5, 0.5);
-        return vec4(value, pixel.w);
-    }
-]]
-
 -- Simplify version checking
 local version = love._version_major * 10000 + love._version_minor * 100 + love._version_revision
 
@@ -66,7 +56,6 @@ local Gspot = {}
 Gspot.style = {
 	unit = 16,
 	font = love.graphics.newFont(10),
-	imagemode = 'replace',
 	fg = {255, 255, 255, 255},
 	bg = {64, 64, 64, 255},
 	labelfg = nil, -- defaults to fg when absent
@@ -80,7 +69,6 @@ Gspot.load = function(this)
 		style = {
 			unit = this.style.unit,
 			font = this.style.font,
-			imagemode = this.style.imagemode,
 			fg = this.style.fg,
 			bg = this.style.bg,
 			labelfg = this.style.labelfg,
@@ -424,18 +412,7 @@ Gspot.util = {
 	drawimg = function(this, pos)
 		local r, g, b, a = love.graphics.getColor()
 		love.graphics.setColor(255, 255, 255, 255)
-		if love.graphics.getShader() == nil then
-			if this.style.imagemode == "combine" then
-				-- emulate combine color mode
-				love.graphics.setShader(combineShader)
-			end
-			love.graphics.draw(this.img, (pos.x + (pos.w / 2)) - (this.img:getWidth()) / 2, (pos.y + (pos.h / 2)) - (this.img:getHeight() / 2))
-			if this.style.imagemode == "combine" then
-				love.graphics.setShader()
-			end
-		else
-			love.graphics.draw(this.img, (pos.x + (pos.w / 2)) - (this.img:getWidth()) / 2, (pos.y + (pos.h / 2)) - (this.img:getHeight() / 2))
-		end
+		love.graphics.draw(this.img, (pos.x + (pos.w / 2)) - (this.img:getWidth()) / 2, (pos.y + (pos.h / 2)) - (this.img:getHeight() / 2))
 		love.graphics.setColor(r, g, b, a)
 	end,
 	

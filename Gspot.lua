@@ -472,7 +472,7 @@ Gspot.util = {
 	withinradius = function(pos, circ)
 		pos = pos.pos or pos
 		circ = circ.pos or circ
-		if math.sqrt((pos.x - circ.x) * (pos.x - circ.x) + (pos.y - circ.y) * (pos.y - circ.y)) < circ.r then return true end
+		if (pos.x - circ.x) * (pos.x - circ.x) + (pos.y - circ.y) * (pos.y - circ.y) < circ.r * circ.r then return true end
 		return false
 	end,
 	

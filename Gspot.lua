@@ -145,18 +145,16 @@ Gspot.update = function(this, dt)
 end
 
 Gspot.draw = function(this)
-	local ostyle = {}
-	ostyle.font = love.graphics.getFont()
-	ostyle.r, ostyle.g, ostyle.b, ostyle.a = love.graphics.getColor()
-	ostyle.scissor = {}
-	ostyle.scissor.x, ostyle.scissor.y, ostyle.scissor.w, ostyle.scissor.h = love.graphics.getScissor()
+	local ostyle_font = love.graphics.getFont()
+	local ostyle_r, ostyle_g, ostyle_b, ostyle_a = love.graphics.getColor()
+	local ostyle_scissor_x, ostyle_scissor_y, ostyle_scissor_w, ostyle_scissor_h = love.graphics.getScissor()
 	for i, element in ipairs(this.elements) do
 		if element.display then
 			local pos, scissor = element:getpos()
 			if scissor then love.graphics.setScissor(scissor.x, scissor.y, scissor.w, scissor.h) end
 			love.graphics.setFont(element.style.font)
 			element:draw(pos)
-			if ostyle.scissor.x then love.graphics.setScissor(ostyle.scissor.x, ostyle.scissor.y, ostyle.scissor.w, ostyle.scissor.h)
+			if ostyle_scissor_x then love.graphics.setScissor(ostyle_scissor_x, ostyle_scissor_y, ostyle_scissor_w, ostyle_scissor_h)
 			else love.graphics.setScissor() end
 		end
 	end
@@ -169,10 +167,8 @@ Gspot.draw = function(this)
 		love.graphics.setColor(this.style.fg)
 		lgprint(element.tip, math.max(this.style.unit / 2, math.min(tippos.x + (this.style.unit / 2), love.graphics.getWidth() - (element.style.font:getWidth(element.tip) + (this.style.unit / 2)))), math.max((this.style.unit - element.style.font:getHeight(element.tip)) / 2, math.min(tippos.y + ((this.style.unit - element.style.font:getHeight('dp')) / 2), (love.graphics.getHeight() - this.style.unit) + ((this.style.unit - element.style.font:getHeight('dp')) / 2))))
 	end
-	love.graphics.setFont(ostyle.font)
-	love.graphics.setColor(ostyle.r, ostyle.g, ostyle.b, ostyle.a)
-	if ostyle.scissor.x then love.graphics.setScissor(ostyle.scissor.x, ostyle.scissor.y, ostyle.scissor.w, ostyle.scissor.h)
-	else love.graphics.setScissor() end
+	love.graphics.setFont(ostyle_font)
+	love.graphics.setColor(ostyle_r, ostyle_g, ostyle_b, ostyle_a)
 end
 
 Gspot.mousepress = function(this, x, y, button)

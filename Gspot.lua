@@ -575,7 +575,7 @@ Gspot.element = {
 		local pos, circ = Gspot:pos(pos)
 		local element = {elementtype = elementtype, label = label, pos = pos, display = true, dt = 0, parent = parent, children = {}, Gspot = Gspot}
 		if element.label == '' then element.label = element.label or ' ' end
-		if circ then element.shape = 'circle' else element.shape = 'box' end
+		if circ then element.shape = 'circle' else element.shape = 'rect' end
 		if parent then element.style = setmetatable({}, {__index = parent.style})
 		else element.style = setmetatable({}, {__index = Gspot.style}) end
 		return setmetatable(element, {__index = Gspot[elementtype], __tostring = function(this) return this:type() .. ' (' .. this:getlevel() .. ')' end})

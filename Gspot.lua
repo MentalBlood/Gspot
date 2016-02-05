@@ -783,10 +783,12 @@ Gspot.input = {
 		end
 	end,
 	draw = function(this, pos)
-		if this == this.Gspot.focus then love.graphics.setColor(this.style.bg)
+		if this == this.Gspot.focus then
+			love.graphics.setColor(this.style.bg)
+		elseif this == this.Gspot.mousein then
+			love.graphics.setColor(this.style.hilite)
 		else
-			if this == this.Gspot.mousein then love.graphics.setColor(this.style.hilite)
-			else love.graphics.setColor(this.style.default) end
+			love.graphics.setColor(this.style.default)
 		end
 		this:drawshape(pos)
 		love.graphics.setColor(this.style.fg)

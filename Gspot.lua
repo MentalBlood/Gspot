@@ -43,6 +43,23 @@ local function utf8char_after(s, idx)
 	return idx
 end
 
+-- Apply a scissor to the current scissor (intersect the rects)
+local function clipScissor(nx, ny, nw, nh)
+  local ox, oy, ow, oh = love.graphics.getScissor()
+  if ox then
+    -- Intersect both rects
+    nw = nx + nw
+    nh = ny + nh
+    nx, ny = math.max(nx, ox), math.max(ny, oy)
+    nw = math.max(0, math.min(nw, ox + ow) - nx)
+    nh = math.max(0, math.min(nh, oy + oh) - ny)
+  end
+  -- Set new scissor
+  love.graphics.setScissor(nx, ny, nw, nh)
+  -- Return old scissor
+  return ox, oy, ow, oh
+end
+
 -- Deal with love.mouse API changes in 0.10
 local mouseL = version >= 001000 and 1 or 'l'
 local mouseR = version >= 001000 and 2 or 'r'
@@ -770,6 +787,7 @@ Gspot.input = {
 		local element = Gspot:element('input', label, pos, parent)
 		element.value = (value and tostring(value)) or ''
 		element.cursor = element.value:len()
+		element.textorigin = 0
 		element.cursorlife = 0
 		element.keyrepeat = 200
 		element.keydelay = 500
@@ -791,17 +809,33 @@ Gspot.input = {
 			love.graphics.setColor(this.style.default)
 		end
 		this:drawshape(pos)
-		love.graphics.setColor(this.style.fg)
-		local str = tostring(this.value)
-		local offset = 1
-		while this.style.font:getWidth(str) > pos.w - (this.style.unit / 2) do
-			offset = utf8char_after(this.value, offset)
-			str = this.value:sub(offset)
-		end
-		lgprint(str, pos.x + (this.style.unit / 4), pos.y + ((pos.h - this.style.font:getHeight('dp')) / 2))
-		if this == this.Gspot.focus and this.cursorlife < 0.5 then
-			local cursorx = ((pos.x + (this.style.unit / 4)) + this.style.font:getWidth(this.value:sub(offset, this.cursor)))
-			love.graphics.line(cursorx, pos.y + (this.style.unit / 8), cursorx, (pos.y + pos.h) - (this.style.unit / 8))
+		-- Margin of edit box is unit/4 on each side, so total margin is unit/2
+		local editw = pos.w - this.style.unit / 2
+		if editw >= 1 then -- won't be visible otherwise and we need room for the cursor
+			-- We don't want to undo the current scissor, to avoid printing text where it shouldn't be
+			-- (e.g. partially visible edit box inside a viewport) so we clip the current scissor.
+			local sx, sy, sw, sh = clipScissor(pos.x + this.style.unit / 4, pos.y, editw, pos.h)
+			love.graphics.setColor(this.style.fg)
+			local str = tostring(this.value)
+			-- cursorx is the position relative to the start of the edit box
+			-- (add pos.x + this.style.unit/4 to obtain the screen X coordinate)
+			local cursorx = this.textorigin + this.style.font:getWidth(str:sub(1, this.cursor))
+			-- adjust text origin so that the cursor is always within the edit box
+			if cursorx < 0 then
+				this.textorigin = math.min(0, this.textorigin - cursorx)
+				cursorx = 0
+			end
+			if cursorx > editw - 1 then
+				this.textorigin = math.min(0, this.textorigin - cursorx + editw - 1)
+				cursorx = editw - 1
+			end
+			-- print the whole text and let the scissor do the clipping
+			lgprint(str, pos.x + this.style.unit / 4 + this.textorigin, pos.y + (pos.h - this.style.font:getHeight('dp')) / 2)
+			if this == this.Gspot.focus and this.cursorlife < 0.5 then
+				love.graphics.rectangle("fill", pos.x + this.style.unit / 4 + cursorx, pos.y + this.style.unit / 8, 1, pos.h - this.style.unit / 4)
+			end
+			-- restore current scissor
+			love.graphics.setScissor(sx, sy, sw, sh)
 		end
 		if this.label then
 			love.graphics.setColor(this.style.labelfg or this.style.fg)

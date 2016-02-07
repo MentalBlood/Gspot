@@ -20,7 +20,6 @@ font = love.graphics.newFont(192)
 
 love.load = function()
 	
-	love.keyboard.setKeyRepeat(500, 250)
 	love.graphics.setFont(font)
 	love.graphics.setColor(255, 192, 0, 128) -- just setting these so we know the gui isn't stealing our thunder
 	
@@ -125,8 +124,7 @@ love.load = function()
 	
 	-- text input
 	input = gui:input('Chat', {64, love.graphics.getHeight() - 32, 256, gui.style.unit})
-	input.keydelay = 500 -- these two are set by default for input elements, same as doing love.setKeyRepeat(element.keydelay, element.keyrepeat) but Gspot will return to current keyrepeat state when it loses focus
-	input.keyrepeat = 200 -- keyrepeat is used as default keydelay value if not assigned as above. use element.keyrepeat = false to disable repeating
+	input.keyrepeat = true -- this is the default anyway
 	input.done = function(this) -- Gspot calls element:done() when you hit enter while element has focus. override this behaviour with element.done = false
 		gui:feedback('I say '..this.value)
 		this.value = ''

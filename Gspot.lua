@@ -105,7 +105,7 @@ Gspot.load = function(this)
 		mousein = nil,
 		focus = nil,
 		drag = nil,
-		orepeat = {},
+		orepeat = nil,
 	}
 	def.mousedt = def.dblclickinterval -- Double click timer (make it expired)
 	return setmetatable(def, {__index = this, __call = this.load})
@@ -295,16 +295,25 @@ end
 Gspot.setfocus = function(this, element)
 	if element then
 		this.focus = element
-		if element.keyrepeat and element.keyrepeat > 0 then
-			this.orepeat.delay = love.keyboard.hasKeyRepeat() or 0
-			love.keyboard.setKeyRepeat(element.keydelay ~= 0)
+		local rep = element.keyrepeat
+		if rep ~= nil then
+			if element.keydelay then -- legacy stuff
+				rep = element.keydelay > 0
+			elseif rep == 0 then
+				rep = false
+			end
+			this.orepeat = love.keyboard.hasKeyRepeat()
+			love.keyboard.setKeyRepeat(rep)
 		end
 	end
 end
 
 Gspot.unfocus = function(this)
 	this.focus = nil
-	if this.orepeat then love.keyboard.setKeyRepeat(this.orepeat.delay ~= 0) end
+	if this.orepeat ~= nil then
+		love.keyboard.setKeyRepeat(this.orepeat)
+		this.orepeat = nil
+	end
 end
 
 local pos = {
@@ -788,8 +797,7 @@ Gspot.input = {
 		element.cursor = element.value:len()
 		element.textorigin = 0
 		element.cursorlife = 0
-		element.keyrepeat = 200
-		element.keydelay = 500
+		element.keyrepeat = true
 		return Gspot:add(element)
 	end,
 	update = function(this, dt)

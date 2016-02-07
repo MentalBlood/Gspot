@@ -168,11 +168,10 @@ Gspot.draw = function(this)
 	for i, element in ipairs(this.elements) do
 		if element.display then
 			local pos, scissor = element:getpos()
-			if scissor then love.graphics.setScissor(scissor.x, scissor.y, scissor.w, scissor.h) end
+			if scissor then clipScissor(scissor.x, scissor.y, scissor.w, scissor.h) end
 			love.graphics.setFont(element.style.font)
 			element:draw(pos)
-			if ostyle_scissor_x then love.graphics.setScissor(ostyle_scissor_x, ostyle_scissor_y, ostyle_scissor_w, ostyle_scissor_h)
-			else love.graphics.setScissor() end
+			love.graphics.setScissor(ostyle_scissor_x, ostyle_scissor_y, ostyle_scissor_w, ostyle_scissor_h)
 		end
 	end
 	if this.mousein and this.mousein.tip then
@@ -453,7 +452,7 @@ Gspot.util = {
 			local ppos = 0
 			ppos, scissor = this.parent:getpos()
 			pos = pos + ppos
-			if this.parent:type() == 'Gspot.element.scrollgroup' and this ~= this.parent.scrollv and  this ~= this.parent.scrollh then
+			if this.parent:type() == 'Gspot.element.scrollgroup' and this ~= this.parent.scrollv and this ~= this.parent.scrollh then
 				scissor = this.Gspot:clone(this.parent:getpos())
 				if this.parent.scrollv then pos.y = pos.y - this.parent.scrollv.values.current end
 				if this.parent.scrollh then pos.x = pos.x - this.parent.scrollh.values.current end

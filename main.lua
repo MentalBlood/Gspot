@@ -85,6 +85,7 @@ love.load = function()
 	
 	-- initialize element.shape to 'circle' by specifying pos.r -- pos.w and pos.h will be set accordingly
 	local checkbox = gui:checkbox(nil, {r = 8}, scrollgroup) -- scrollgroup.scrollh.values.max, scrollgroup.scrollv.values.max will be updated when a child is added to scrollgroup
+	checkbox.style.labelfg = checkbox.style.fg -- lock label colour
 	checkbox.click = function(this)
 		gui[this.elementtype].click(this) -- calling option's base click() to preserve default functionality, as we're overriding a reserved behaviour
 		if this.value then this.style.fg = {255, 128, 0, 255}

@@ -137,7 +137,8 @@ Gspot.update = function(this, dt)
 			if bucket ~= element and bucket:containspoint(mouse) then this.mouseover = bucket end
 		end
 	end
-	for i, element in ipairs(this.elements) do
+	for i = #this.elements, 1, -1 do
+		local element = this.elements[i]
 		if element.display then
 			if element.update then
 				if element.updateinterval then
@@ -148,10 +149,15 @@ Gspot.update = function(this, dt)
 					end
 				else element:update(dt) end
 			end
+		end
+	end
+	for i = #this.elements, 1, -1 do
+		local element = this.elements[i]
+		if element.display then
 			if element:containspoint(mouse) then
 				if element.parent and element.parent:type() == 'Gspot.element.scrollgroup' and element ~= element.parent.scrollv and element ~= element.parent.scrollh then
-					if element.parent:containspoint(mouse) then this.mousein = element end
-				else this.mousein = element end
+					if element.parent:containspoint(mouse) then this.mousein = element break end
+				else this.mousein = element break end
 			end
 		end
 	end

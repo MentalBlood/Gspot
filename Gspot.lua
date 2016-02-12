@@ -480,7 +480,7 @@ Gspot.util = {
 	withinrect = function(pos, rect)
 		pos = pos.pos or pos
 		rect = rect.pos or rect
-		if pos.x >= rect.x and pos.x <= (rect.x + rect.w) and pos.y >= rect.y and pos.y < (rect.y + rect.h) then return true end
+		if pos.x >= rect.x and pos.x < (rect.x + rect.w) and pos.y >= rect.y and pos.y < (rect.y + rect.h) then return true end
 		return false
 	end,
 	

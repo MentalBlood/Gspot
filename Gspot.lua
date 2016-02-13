@@ -539,13 +539,13 @@ Gspot.util = {
 			elseif autostack == 'horizontal' then child.pos.x = this:getmaxw()
 			elseif autostack == 'vertical' then child.pos.y = this:getmaxh() end
 		end
-		if this.scrollh then this.scrollh.values.max = math.max(this:getmaxw() - this.pos.w, 0) end
-		if this.scrollv then this.scrollv.values.max = math.max(this:getmaxh() - this.pos.h, 0) end
 		
 		table.insert(this.children, child)
 		child.parent = this
 		child.style = this.Gspot:clone(child.style)
 		setmetatable(child.style, {__index = this.style})
+		if this.scrollh then this.scrollh.values.max = math.max(this:getmaxw() - this.pos.w, 0) end
+		if this.scrollv then this.scrollv.values.max = math.max(this:getmaxh() - this.pos.h, 0) end
 		return child
 	end,
 	

@@ -917,7 +917,7 @@ Gspot.scroll = {
 	end,
 	drag = function(this, x, y)
 		local pos = this:getpos()
-		this.values.current = this.values.min + ((this.values.max - this.values.min) * ((this.values.axis == 'vertical' and ((math.min(math.max(pos.y, y), (pos.y + pos.h)) - pos.y) / pos.h)) or ((math.min(math.max(pos.x, x), (pos.x + pos.w)) - pos.x) / pos.w)))
+		this.values.current = this.values.min + ((this.values.max - this.values.min) * ((this.values.axis == 'vertical' and ((math.min(math.max(pos.y, y - this.style.unit / 2), (pos.y + pos.h - this.style.unit)) - pos.y) / (pos.h - this.style.unit))) or ((math.min(math.max(pos.x, x - this.style.unit / 2), (pos.x + pos.w - this.style.unit)) - pos.x) / (pos.w - this.style.unit))))
 	end,
 	wheelup = function(this)
 		if this.values.axis == 'horizontal' then this:step(-1) else this:step(1) end
@@ -947,7 +947,7 @@ Gspot.scroll = {
 		this:rect(pos)
 		if this == this.Gspot.mousein or this == this.Gspot.drag or this == this.Gspot.focus then love.graphics.setColor(this.style.fg)
 		else love.graphics.setColor(this.style.hilite) end
-		local handlepos = this.Gspot:pos({x = (this.values.axis == 'horizontal' and math.min(pos.x + (pos.w - this.style.unit), math.max(pos.x, pos.x + (pos.w * (this.values.current / (this.values.max - this.values.min))) - (this.style.unit / 2)))) or pos.x, y = (this.values.axis == 'vertical' and math.min(pos.y + (pos.h - this.style.unit), math.max(pos.y, pos.y + (pos.h * (this.values.current / (this.values.max - this.values.min))) - (this.style.unit / 2)))) or pos.y, w = this.style.unit, h = this.style.unit, r = pos.r})
+		local handlepos = this.Gspot:pos({x = (this.values.axis == 'horizontal' and math.min(pos.x + (pos.w - this.style.unit), math.max(pos.x, pos.x + ((pos.w - this.style.unit) * (this.values.current / (this.values.max - this.values.min)))))) or pos.x, y = (this.values.axis == 'vertical' and math.min(pos.y + (pos.h - this.style.unit), math.max(pos.y, pos.y + ((pos.h - this.style.unit) * (this.values.current / (this.values.max - this.values.min)))))) or pos.y, w = this.style.unit, h = this.style.unit, r = pos.r})
 		this:drawshape(handlepos)
 		if this.label then
 			love.graphics.setColor(this.style.labelfg or this.style.fg)

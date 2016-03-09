@@ -919,6 +919,15 @@ Gspot.scroll = {
 	drag = function(this, x, y)
 		local pos = this:getpos()
 		local hs = this.values.hs
+		if hs == "auto" then
+			if this.values.axis == 'vertical' then
+				local h = this.parent and this.parent.pos.h or pos.h
+				hs = math.max(this.style.unit / 4, math.min(pos.h, pos.h * h / (this.values.max - this.values.min + h)))
+			else
+				local w = this.parent and this.parent.pos.w or pos.w
+				hs = math.max(this.style.unit / 4, math.min(pos.w, pos.w * w / (this.values.max - this.values.min + w)))
+			end
+		end
 		this.values.current = this.values.min + ((this.values.max - this.values.min) * ((this.values.axis == 'vertical' and ((math.min(math.max(pos.y, y - math.floor(hs / 2)), (pos.y + pos.h - hs)) - pos.y) / (pos.h - hs))) or ((math.min(math.max(pos.x, x - math.floor(hs / 2)), (pos.x + pos.w - hs)) - pos.x) / (pos.w - hs))))
 	end,
 	wheelup = function(this)
@@ -950,6 +959,15 @@ Gspot.scroll = {
 		if this == this.Gspot.mousein or this == this.Gspot.drag or this == this.Gspot.focus then love.graphics.setColor(this.style.fg)
 		else love.graphics.setColor(this.style.hilite) end
 		local hs = this.values.hs
+		if hs == "auto" then
+			if this.values.axis == 'vertical' then
+				local h = this.parent and this.parent.pos.h or pos.h
+				hs = math.max(this.style.unit / 4, math.min(pos.h, pos.h * h / (this.values.max - this.values.min + h)))
+			else
+				local w = this.parent and this.parent.pos.w or pos.w
+				hs = math.max(this.style.unit / 4, math.min(pos.w, pos.w * w / (this.values.max - this.values.min + w)))
+			end
+		end
 		local handlepos = this.Gspot:pos({x = (this.values.axis == 'horizontal' and math.min(pos.x + (pos.w - hs), math.max(pos.x, pos.x + ((pos.w - hs) * (this.values.current / (this.values.max - this.values.min)))))) or pos.x, y = (this.values.axis == 'vertical' and math.min(pos.y + (pos.h - hs), math.max(pos.y, pos.y + ((pos.h - hs) * (this.values.current / (this.values.max - this.values.min)))))) or pos.y, w = this.values.axis == 'horizontal' and hs or this.style.unit, h = this.values.axis == 'vertical' and hs or this.style.unit, r = pos.r})
 		this:drawshape(handlepos)
 		if this.label then

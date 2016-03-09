@@ -83,6 +83,7 @@ love.load = function()
 	--scrollgroup.scroller:setshape('circle') -- to set a round handle
 	scrollgroup.scrollh.drop = function(this) gui:feedback('Scrolled to : '..this.values.current..' / '..this.values.min..' - '..this.values.max) end
 	scrollgroup.scrollv.drop = scrollgroup.scrollh.drop
+	scrollgroup.scrollv.values.hs = "auto"
 	
 	-- initialize element.shape to 'circle' by specifying pos.r -- pos.w and pos.h will be set accordingly
 	local checkbox = gui:checkbox(nil, {r = 8}, scrollgroup) -- scrollgroup.scrollh.values.max, scrollgroup.scrollv.values.max will be updated when a child is added to scrollgroup

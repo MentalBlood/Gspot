@@ -919,10 +919,6 @@ Gspot.scroll = {
 		local pos = this:getpos()
 		this.values.current = this.values.min + ((this.values.max - this.values.min) * ((this.values.axis == 'vertical' and ((math.min(math.max(pos.y, y), (pos.y + pos.h)) - pos.y) / pos.h)) or ((math.min(math.max(pos.x, x), (pos.x + pos.w)) - pos.x) / pos.w)))
 	end,
-	rdrag = function(this, x, y)
-		local pos = this:getpos()
-		this.values.current = this.values.min + ((this.values.max - this.values.min) * ((this.values.axis == 'vertical' and ((math.min(math.max(pos.y, y), (pos.y + pos.h)) - pos.y) / pos.h)) or ((math.min(math.max(pos.x, x), (pos.x + pos.w)) - pos.x) / pos.w)))
-	end,
 	wheelup = function(this)
 		if this.values.axis == 'horizontal' then this:step(-1) else this:step(1) end
 	end,
@@ -959,6 +955,7 @@ Gspot.scroll = {
 		end
 	end,
 }
+Gspot.scroll.rdrag = Gspot.scroll.drag
 setmetatable(Gspot.scroll, {__index = Gspot.util, __call = Gspot.scroll.load})
 
 Gspot.scrollgroup = {

@@ -45,19 +45,19 @@ end
 
 -- Apply a scissor to the current scissor (intersect the rects)
 local function clipScissor(nx, ny, nw, nh)
-  local ox, oy, ow, oh = love.graphics.getScissor()
-  if ox then
-    -- Intersect both rects
-    nw = nx + nw
-    nh = ny + nh
-    nx, ny = math.max(nx, ox), math.max(ny, oy)
-    nw = math.max(0, math.min(nw, ox + ow) - nx)
-    nh = math.max(0, math.min(nh, oy + oh) - ny)
-  end
-  -- Set new scissor
-  love.graphics.setScissor(nx, ny, nw, nh)
-  -- Return old scissor
-  return ox, oy, ow, oh
+	local ox, oy, ow, oh = love.graphics.getScissor()
+	if ox then
+		-- Intersect both rects
+		nw = nx + nw
+		nh = ny + nh
+		nx, ny = math.max(nx, ox), math.max(ny, oy)
+		nw = math.max(0, math.min(nw, ox + ow) - nx)
+		nh = math.max(0, math.min(nh, oy + oh) - ny)
+	end
+	-- Set new scissor
+	love.graphics.setScissor(nx, ny, nw, nh)
+	-- Return old scissor
+	return ox, oy, ow, oh
 end
 
 -- Deal with love.mouse API changes in 0.10
@@ -684,7 +684,7 @@ Gspot.text = {
 	draw = function(this, pos)
 		love.graphics.setColor(this.style.labelfg or this.style.fg)
 		if this.autosize then lgprint(this.label, pos.x + (this.style.unit / 4), pos.y + ((this.style.unit - this.style.font:getHeight()) / 2))
-		else lgprintf(this.label, pos.x + (this.style.unit / 4), pos.y + ((this.style.unit - this.style.font:getHeight()) / 2), (this.autosize and pos.w) or  pos.w - (this.style.unit / 2), 'left') end
+		else lgprintf(this.label, pos.x + (this.style.unit / 4), pos.y + ((this.style.unit - this.style.font:getHeight()) / 2), (this.autosize and pos.w) or pos.w - (this.style.unit / 2), 'left') end
 	end,
 }
 setmetatable(Gspot.text, {__index = Gspot.util, __call = Gspot.text.load})

@@ -138,7 +138,7 @@ love.load = function()
 	
 	-- easy custom gui element
 	gui.boxy = function(this, label, pos, parent) -- careful not to override existing element types, and remember we're inside the gui's scope now
-		local group = this:group(label, pos, parent) -- using the easy  method, our custom element should be based on an existing element type
+		local group = this:group(label, pos, parent) -- using the easy method, our custom element should be based on an existing element type
 		group.tip = 'Drag, and right-click or doubleclick to spawn'
 		group.drag = true
 		group.rclick = function(this) gui:boxy('More custom goodness', {love.mouse.getX(), love.mouse.getY(), 128, 64}) end -- boxy will spawn more windows

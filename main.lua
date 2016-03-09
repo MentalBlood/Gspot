@@ -78,6 +78,7 @@ love.load = function()
 	-- scrollgroup's children, excepting its scrollbar, will scroll
 	scrollgroup = gui:scrollgroup(nil, {0, gui.style.unit, 256, 256}, group2) -- scrollgroup will create its own scrollbar
 	scrollgroup.scrollh.tip = 'Scroll (mouse or wheel)' -- scrollgroup.scrollh is the horizontal scrollbar
+	scrollgroup.scrollh.values.hs = scrollgroup.style.unit*2
 	scrollgroup.scrollv.tip = scrollgroup.scrollh.tip -- scrollgroup.scrollv is the vertical scrollbar
 	--scrollgroup.scroller:setshape('circle') -- to set a round handle
 	scrollgroup.scrollh.drop = function(this) gui:feedback('Scrolled to : '..this.values.current..' / '..this.values.min..' - '..this.values.max) end

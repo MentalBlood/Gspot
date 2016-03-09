@@ -620,6 +620,7 @@ Gspot.scrollvalues = function(this, values)
 	val.current = values.current or values[3] or val.min
 	val.step = values.step or values[4] or this.style.unit
 	val.axis = values.axis or values[5] or 'vertical'
+	val.hs = values.hs or values[6] or this.style.unit
 	return val
 end
 
@@ -917,7 +918,8 @@ Gspot.scroll = {
 	end,
 	drag = function(this, x, y)
 		local pos = this:getpos()
-		this.values.current = this.values.min + ((this.values.max - this.values.min) * ((this.values.axis == 'vertical' and ((math.min(math.max(pos.y, y - this.style.unit / 2), (pos.y + pos.h - this.style.unit)) - pos.y) / (pos.h - this.style.unit))) or ((math.min(math.max(pos.x, x - this.style.unit / 2), (pos.x + pos.w - this.style.unit)) - pos.x) / (pos.w - this.style.unit))))
+		local hs = this.values.hs
+		this.values.current = this.values.min + ((this.values.max - this.values.min) * ((this.values.axis == 'vertical' and ((math.min(math.max(pos.y, y - math.floor(hs / 2)), (pos.y + pos.h - hs)) - pos.y) / (pos.h - hs))) or ((math.min(math.max(pos.x, x - math.floor(hs / 2)), (pos.x + pos.w - hs)) - pos.x) / (pos.w - hs))))
 	end,
 	wheelup = function(this)
 		if this.values.axis == 'horizontal' then this:step(-1) else this:step(1) end
@@ -947,7 +949,8 @@ Gspot.scroll = {
 		this:rect(pos)
 		if this == this.Gspot.mousein or this == this.Gspot.drag or this == this.Gspot.focus then love.graphics.setColor(this.style.fg)
 		else love.graphics.setColor(this.style.hilite) end
-		local handlepos = this.Gspot:pos({x = (this.values.axis == 'horizontal' and math.min(pos.x + (pos.w - this.style.unit), math.max(pos.x, pos.x + ((pos.w - this.style.unit) * (this.values.current / (this.values.max - this.values.min)))))) or pos.x, y = (this.values.axis == 'vertical' and math.min(pos.y + (pos.h - this.style.unit), math.max(pos.y, pos.y + ((pos.h - this.style.unit) * (this.values.current / (this.values.max - this.values.min)))))) or pos.y, w = this.style.unit, h = this.style.unit, r = pos.r})
+		local hs = this.values.hs
+		local handlepos = this.Gspot:pos({x = (this.values.axis == 'horizontal' and math.min(pos.x + (pos.w - hs), math.max(pos.x, pos.x + ((pos.w - hs) * (this.values.current / (this.values.max - this.values.min)))))) or pos.x, y = (this.values.axis == 'vertical' and math.min(pos.y + (pos.h - hs), math.max(pos.y, pos.y + ((pos.h - hs) * (this.values.current / (this.values.max - this.values.min)))))) or pos.y, w = this.values.axis == 'horizontal' and hs or this.style.unit, h = this.values.axis == 'vertical' and hs or this.style.unit, r = pos.r})
 		this:drawshape(handlepos)
 		if this.label then
 			love.graphics.setColor(this.style.labelfg or this.style.fg)

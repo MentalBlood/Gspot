@@ -605,7 +605,6 @@ Gspot.element = {
 		assert((type(parent) == 'table' and parent:type():sub(1, 13) == 'Gspot.element') or not parent, 'invalid element constructor argument : element.parent must be of type element or nil')
 		local pos, circ = Gspot:pos(pos)
 		local element = {elementtype = elementtype, label = label, pos = pos, display = true, dt = 0, parent = parent, children = {}, Gspot = Gspot}
-		if element.label == '' then element.label = element.label or ' ' end
 		if circ then element.shape = 'circle' else element.shape = 'rect' end
 		if parent then element.style = setmetatable({}, {__index = parent.style})
 		else element.style = setmetatable({}, {__index = Gspot.style}) end

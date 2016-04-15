@@ -96,6 +96,7 @@ Gspot.load = function(this)
 			default = this.style.default,
 			hilite = this.style.hilite,
 			focus = this.style.focus,
+			hs = this.style.hs or this.style.unit,
 		},
 		dblclickinterval = 0.25,
 		-- no messin' past here
@@ -620,7 +621,6 @@ Gspot.scrollvalues = function(this, values)
 	val.current = values.current or values[3] or val.min
 	val.step = values.step or values[4] or this.style.unit
 	val.axis = values.axis or values[5] or 'vertical'
-	val.hs = values.hs or values[6] or this.style.unit
 	return val
 end
 
@@ -918,7 +918,7 @@ Gspot.scroll = {
 	end,
 	drag = function(this, x, y)
 		local pos = this:getpos()
-		local hs = this.values.hs
+		local hs = this.style.hs
 		if hs == "auto" then
 			if this.values.axis == 'vertical' then
 				local h = this.parent and this.parent.pos.h or pos.h
@@ -958,7 +958,7 @@ Gspot.scroll = {
 		this:rect(pos)
 		if this == this.Gspot.mousein or this == this.Gspot.drag or this == this.Gspot.focus then love.graphics.setColor(this.style.fg)
 		else love.graphics.setColor(this.style.hilite) end
-		local hs = this.values.hs
+		local hs = this.style.hs
 		if hs == "auto" then
 			if this.values.axis == 'vertical' then
 				local h = this.parent and this.parent.pos.h or pos.h

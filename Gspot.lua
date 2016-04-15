@@ -918,7 +918,7 @@ Gspot.scroll = {
 	drag = function(this, x, y)
 		local pos = this:getpos()
 		local hs = this.style.hs
-		if hs == "auto" then
+		if hs == 'auto' then
 			if this.values.axis == 'vertical' then
 				local h = this.parent and this.parent.pos.h or pos.h
 				hs = math.max(this.style.unit / 4, math.min(pos.h, pos.h * h / (this.values.max - this.values.min + h)))
@@ -958,7 +958,7 @@ Gspot.scroll = {
 		if this == this.Gspot.mousein or this == this.Gspot.drag or this == this.Gspot.focus then love.graphics.setColor(this.style.fg)
 		else love.graphics.setColor(this.style.hilite) end
 		local hs = this.style.hs
-		if hs == "auto" then
+		if hs == 'auto' then
 			if this.values.axis == 'vertical' then
 				local h = this.parent and this.parent.pos.h or pos.h
 				hs = math.max(this.style.unit / 4, math.min(pos.h, pos.h * h / (this.values.max - this.values.min + h)))

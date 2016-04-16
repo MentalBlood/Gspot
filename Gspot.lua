@@ -938,7 +938,11 @@ Gspot.scroll = {
 				hs = math.max(this.style.unit / 4, math.min(pos.w, pos.w * w / (this.values.max - this.values.min + w)))
 			end
 		end
-		this.values.current = this.values.min + ((this.values.max - this.values.min) * ((this.values.axis == 'vertical' and ((math.min(math.max(pos.y, y - math.floor(hs / 2)), (pos.y + pos.h - hs)) - pos.y) / (pos.h - hs))) or ((math.min(math.max(pos.x, x - math.floor(hs / 2)), (pos.x + pos.w - hs)) - pos.x) / (pos.w - hs))))
+		if this.values.axis == 'vertical' and pos.h == hs or this.values.axis ~= 'vertical' and pos.w == hs then
+			this.values.current = 0
+		else
+			this.values.current = this.values.min + ((this.values.max - this.values.min) * ((this.values.axis == 'vertical' and ((math.min(math.max(pos.y, y - math.floor(hs / 2)), (pos.y + pos.h - hs)) - pos.y) / (pos.h - hs))) or ((math.min(math.max(pos.x, x - math.floor(hs / 2)), (pos.x + pos.w - hs)) - pos.x) / (pos.w - hs))))
+		end
 	end,
 	wheelup = function(this)
 		if this.values.axis == 'horizontal' then this:step(-1) else this:step(1) end

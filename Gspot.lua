@@ -805,13 +805,15 @@ Gspot.checkbox = {
 setmetatable(Gspot.checkbox, {__index = Gspot.util, __call = Gspot.checkbox.load})
 
 Gspot.input = {
-	load = function(this, Gspot, label, pos, parent, value)
+	load = function(this, Gspot, label, pos, parent, value, ispassword, passwordchar)
 		local element = Gspot:element('input', label, pos, parent)
 		element.value = (value and tostring(value)) or ''
 		element.cursor = element.value:len()
 		element.textorigin = 0
 		element.cursorlife = 0
 		element.keyrepeat = true
+		element.ispassword = ispassword or false
+		element.passwordchar = (passwordchar and tostring(passwordchar)) or '*'
 		return Gspot:add(element)
 	end,
 	update = function(this, dt)
@@ -837,7 +839,7 @@ Gspot.input = {
 			-- (e.g. partially visible edit box inside a viewport) so we clip the current scissor.
 			local sx, sy, sw, sh = clipScissor(pos.x + this.style.unit / 4, pos.y, editw, pos.h)
 			love.graphics.setColor(this.style.fg)
-			local str = tostring(this.value)
+			local str = this.ispassword and string.rep(this.passwordchar,utf8len(tostring(this.value))) or tostring(this.value)
 			-- cursorx is the position relative to the start of the edit box
 			-- (add pos.x + this.style.unit/4 to obtain the screen X coordinate)
 			local cursorx = this.textorigin + this.style.font:getWidth(str:sub(1, this.cursor))
@@ -907,110 +909,6 @@ Gspot.input = {
 	end,
 }
 setmetatable(Gspot.input, {__index = Gspot.util, __call = Gspot.input.load})
-
-Gspot.inputPassword = {
-	load = function(this, Gspot, label, pos, parent, value)
-		local element = Gspot:element('inputPassword', label, pos, parent)
-		element.value = (value and tostring(value)) or ''
-		element.cursor = element.value:len()
-		element.textorigin = 0
-		element.cursorlife = 0
-		element.keyrepeat = true
-		return Gspot:add(element)
-	end,
-	update = function(this, dt)
-		if this.cursor > #this.value then this.cursor = #this.value end
-		if this.Gspot.focus == this then
-			if this.cursorlife >= 1 then this.cursorlife = 0
-			else this.cursorlife = this.cursorlife + dt end
-		end
-	end,
-	draw = function(this, pos)
-		if this == this.Gspot.focus then
-			love.graphics.setColor(this.style.bg)
-		elseif this == this.Gspot.mousein then
-			love.graphics.setColor(this.style.hilite)
-		else
-			love.graphics.setColor(this.style.default)
-		end
-		this:drawshape(pos)
-		-- Margin of edit box is unit/4 on each side, so total margin is unit/2
-		local editw = pos.w - this.style.unit / 2
-		if editw >= 1 then -- won't be visible otherwise and we need room for the cursor
-			-- We don't want to undo the current scissor, to avoid printing text where it shouldn't be
-			-- (e.g. partially visible edit box inside a viewport) so we clip the current scissor.
-			local sx, sy, sw, sh = clipScissor(pos.x + this.style.unit / 4, pos.y, editw, pos.h)
-			love.graphics.setColor(this.style.fg)
-			local str = string.rep('*',utf8len(tostring(this.value)))
-			-- cursorx is the position relative to the start of the edit box
-			-- (add pos.x + this.style.unit/4 to obtain the screen X coordinate)
-			local cursorx = this.textorigin + this.style.font:getWidth(str:sub(1, this.cursor))
-			-- adjust text origin so that the cursor is always within the edit box
-			if cursorx < 0 then
-				this.textorigin = math.min(0, this.textorigin - cursorx)
-				cursorx = 0
-			end
-			if cursorx > editw - 1 then
-				this.textorigin = math.min(0, this.textorigin - cursorx + editw - 1)
-				cursorx = editw - 1
-			end
-			-- print the whole text and let the scissor do the clipping
-			lgprint(str, pos.x + this.style.unit / 4 + this.textorigin, pos.y + (pos.h - this.style.font:getHeight()) / 2)
-			if this == this.Gspot.focus and this.cursorlife < 0.5 then
-				love.graphics.rectangle("fill", pos.x + this.style.unit / 4 + cursorx, pos.y + this.style.unit / 8, 1, pos.h - this.style.unit / 4)
-			end
-			-- restore current scissor
-			love.graphics.setScissor(sx, sy, sw, sh)
-		end
-		if this.label then
-			love.graphics.setColor(this.style.labelfg or this.style.fg)
-			lgprint(this.label, pos.x - ((this.style.unit / 2) + this.style.font:getWidth(this.label)), pos.y + ((this.pos.h - this.style.font:getHeight()) / 2))
-		end
-	end,
-	click = function(this) this:focus() end,
-	done = function(this) this.Gspot:unfocus() end,
-	keypress = function(this, key)
-		local save_cursorlife = this.cursorlife
-		this.cursorlife = 0
-		-- fragments attributed to vrld's Quickie : https://github.com/vrld/Quickie
-		if key == 'backspace' then
-			local cur = this.cursor
-			if cur > 0 then
-				this.cursor = utf8char_begin(this.value, cur) - 1
-				this.value = this.value:sub(1, this.cursor)..this.value:sub(cur + 1)
-			end
-		elseif key == 'delete' then
-			local cur = utf8char_after(this.value, this.cursor + 1)
-			this.value = this.value:sub(1, this.cursor)..this.value:sub(cur)
-		elseif key == 'left' then
-			if this.cursor > 0 then
-				this.cursor = utf8char_begin(this.value, this.cursor) - 1
-			end
-		elseif key == 'right' then
-			this.cursor = utf8char_after(this.value, this.cursor + 1) - 1
-		elseif key == 'home' then
-			this.cursor = 0
-		elseif key == 'end' then
-			this.cursor = this.value:len()
-		elseif key == 'tab' and this.next and this.next.elementtype then
-			this.next:focus()
-		elseif key == 'escape' then
-			this.Gspot:unfocus()
-		else
-			-- all of the above reset the blink timer, but otherwise it's retained
-			this.cursorlife = save_cursorlife
-		end
-		-- /fragments
-	end,
-
-	textinput = function(this, key)
-		this.value = this.value:sub(1, this.cursor) .. key .. this.value:sub(this.cursor + 1)
-		this.cursor = this.cursor + #key
-		-- reset blink timer
-		this.cursorlife = 0
-	end,
-}
-setmetatable(Gspot.inputPassword, {__index = Gspot.util, __call = Gspot.inputPassword.load})
 
 Gspot.scroll = {
 	load = function(this, Gspot, label, pos, parent, values)

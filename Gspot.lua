@@ -942,7 +942,6 @@ Gspot.inputPassword = {
 			local sx, sy, sw, sh = clipScissor(pos.x + this.style.unit / 4, pos.y, editw, pos.h)
 			love.graphics.setColor(this.style.fg)
 			local str = string.rep('*',utf8len(tostring(this.value)))
-			print(this.cursor*100+utf8char_after(str,this.cursor))
 			-- cursorx is the position relative to the start of the edit box
 			-- (add pos.x + this.style.unit/4 to obtain the screen X coordinate)
 			local cursorx = this.textorigin + this.style.font:getWidth(str:sub(1, this.cursor))

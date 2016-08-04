@@ -43,6 +43,15 @@ local function utf8char_after(s, idx)
 	return idx
 end
 
+-- Return the number of UTF-8 characters on the string
+local function utf8len(s)
+	local p = 0
+	for i=1,string.len(s) do
+		p = (s:byte(i) >= 0x80 and s:byte(i) < 0xC0) and p or p+1
+	end
+	return p
+end
+
 -- Apply a scissor to the current scissor (intersect the rects)
 local function clipScissor(nx, ny, nw, nh)
 	local ox, oy, ow, oh = love.graphics.getScissor()
@@ -796,13 +805,15 @@ Gspot.checkbox = {
 setmetatable(Gspot.checkbox, {__index = Gspot.util, __call = Gspot.checkbox.load})
 
 Gspot.input = {
-	load = function(this, Gspot, label, pos, parent, value)
+	load = function(this, Gspot, label, pos, parent, value, ispassword, passwordchar)
 		local element = Gspot:element('input', label, pos, parent)
 		element.value = (value and tostring(value)) or ''
 		element.cursor = element.value:len()
 		element.textorigin = 0
 		element.cursorlife = 0
 		element.keyrepeat = true
+		element.ispassword = ispassword or false
+		element.passwordchar = (passwordchar and tostring(passwordchar)) or '*'
 		return Gspot:add(element)
 	end,
 	update = function(this, dt)
@@ -828,7 +839,7 @@ Gspot.input = {
 			-- (e.g. partially visible edit box inside a viewport) so we clip the current scissor.
 			local sx, sy, sw, sh = clipScissor(pos.x + this.style.unit / 4, pos.y, editw, pos.h)
 			love.graphics.setColor(this.style.fg)
-			local str = tostring(this.value)
+			local str = this.ispassword and string.rep(this.passwordchar,utf8len(tostring(this.value))) or tostring(this.value)
 			-- cursorx is the position relative to the start of the edit box
 			-- (add pos.x + this.style.unit/4 to obtain the screen X coordinate)
 			local cursorx = this.textorigin + this.style.font:getWidth(str:sub(1, this.cursor))

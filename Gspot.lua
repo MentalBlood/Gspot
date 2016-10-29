@@ -147,7 +147,7 @@ Gspot.update = function(this, dt)
 			if bucket ~= element and bucket:containspoint(mouse) then this.mouseover = bucket end
 		end
 	end
-	for i = 1, #this.elements do
+	for i = #this.elements, 1, -1 do
 		local element = this.elements[i]
 		if element.display then
 			if element:containspoint(mouse) then

@@ -168,7 +168,7 @@ love.load = function()
 	counter = gui:text('0', {0, gui.style.unit, 128, 0}, showhider)
 	counter.count = 0
 	counter.update = function(this, dt) -- set an update function, which will be called every frame, unless we also specify element.updateinterval
-		if this.parent == gui.mousein then
+		if gui.mousein == this or gui.mousein == this.parent then
 			this.count = this.count + dt
 			if this.count > 1 then this.count = 0 end
 			this.label = this.count

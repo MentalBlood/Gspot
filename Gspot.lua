@@ -465,6 +465,8 @@ Gspot.util = {
 		end
 		if pcall(function(font) return font:type() == 'Font' end, font) then
 			this.style.font = font
+			this.pos.w = this.style.font:getWidth(this.label)
+			this.pos.h = this.style.font:getHeight()
 		else
 			this.style.font = nil
 			this.style = this.Gspot:clone(this.style)

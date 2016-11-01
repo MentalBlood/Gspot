@@ -53,20 +53,30 @@ local function utf8len(s)
 end
 
 -- Apply a scissor to the current scissor (intersect the rects)
-local function clipScissor(nx, ny, nw, nh)
-	local ox, oy, ow, oh = love.graphics.getScissor()
-	if ox then
-		-- Intersect both rects
-		nw = nx + nw
-		nh = ny + nh
-		nx, ny = math.max(nx, ox), math.max(ny, oy)
-		nw = math.max(0, math.min(nw, ox + ow) - nx)
-		nh = math.max(0, math.min(nh, oy + oh) - ny)
+local clipScissor
+if version < 001000 then
+	function clipScissor(nx, ny, nw, nh)
+		local ox, oy, ow, oh = love.graphics.getScissor()
+		if ox then
+			-- Intersect both rects
+			nw = nx + nw
+			nh = ny + nh
+			nx, ny = math.max(nx, ox), math.max(ny, oy)
+			nw = math.max(0, math.min(nw, ox + ow) - nx)
+			nh = math.max(0, math.min(nh, oy + oh) - ny)
+		end
+		-- Set new scissor
+		love.graphics.setScissor(nx, ny, nw, nh)
+		-- Return old scissor
+		return ox, oy, ow, oh
 	end
-	-- Set new scissor
-	love.graphics.setScissor(nx, ny, nw, nh)
-	-- Return old scissor
-	return ox, oy, ow, oh
+else
+	function clipScissor(nx, ny, nw, nh)
+		local ox, oy, ow, oh = love.graphics.getScissor()
+		love.graphics.intersectScissor(nx, ny, nw, nh)
+		-- Return old scissor
+		return ox, oy, ow, oh
+	end
 end
 
 -- Deal with love.mouse API changes in 0.10

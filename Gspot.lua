@@ -465,8 +465,10 @@ Gspot.util = {
 		end
 		if pcall(function(font) return font:type() == 'Font' end, font) then
 			this.style.font = font
-			this.pos.w = this.style.font:getWidth(this.label)
-			this.pos.h = this.style.font:getHeight()
+			if this.autosize then
+				this.pos.w = this.style.font:getWidth(this.label)
+				this.pos.h = this.style.font:getHeight()
+			end
 		else
 			this.style.font = nil
 			this.style = this.Gspot:clone(this.style)
@@ -740,7 +742,8 @@ Gspot.image = {
 setmetatable(Gspot.image, {__index = Gspot.util, __call = Gspot.image.load})
 
 Gspot.button = {
-	load = function(this, Gspot, label, pos, parent)
+	load = function(this, Gspot, label, pos, parent, autosize)
+		if autosize then this.autosize = autosize end
 		return Gspot:add(Gspot:element('button', label, pos, parent))
 	end,
 	draw = function(this, pos)

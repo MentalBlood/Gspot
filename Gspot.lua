@@ -203,6 +203,7 @@ Gspot.draw = function(this)
 	if this.mousein and this.mousein.tip then
 		local element = this.mousein
 		local pos = element:getpos()
+		love.graphics.setFont(this.style.font) -- use the default font
 		local tippos = {x = pos.x + (this.style.unit / 2), y = pos.y + (this.style.unit / 2), w = element.style.font:getWidth(element.tip) + this.style.unit, h = this.style.unit}
 		love.graphics.setColor(this.style.bg)
 		this.mousein:rect({x = math.max(0, math.min(tippos.x, love.graphics.getWidth() - (element.style.font:getWidth(element.tip) + this.style.unit))), y = math.max(0, math.min(tippos.y, love.graphics.getHeight() - this.style.unit)), w = tippos.w, h = tippos.h})

@@ -477,8 +477,8 @@ Gspot.util = {
 		if pcall(function(font) return font:type() == 'Font' end, font) then
 			this.style.font = font
 			if this.autosize then
-				this.pos.w = this.style.font:getWidth(this.label)
-				this.pos.h = this.style.font:getHeight()
+				this.pos.w = font:getWidth(this.label) + (this.style.unit / 2)
+				this.pos.h = font:getHeight()
 			end
 		else
 			this.style.font = nil
@@ -700,10 +700,12 @@ Gspot.text = {
 	end,
 	setfont = function(this, font, size)
 		this.Gspot.util.setfont(this, font, size)
-		local width, lines = this.style.font:getWrap(this.label, this.pos.w)
-		if type(lines) == "table" then lines = #lines end
-		lines = math.max(lines, 1)
-		this.pos.h = (this.style.font:getHeight() * lines) + (this.style.unit - this.style.font:getHeight())
+		if not this.autosize then -- height needs adjustment regardless
+			local width, lines = this.style.font:getWrap(this.label, this.pos.w - (this.style.unit / 2))
+			if type(lines) == "table" then lines = #lines end
+			lines = math.max(lines, 1)
+			this.pos.h = this.style.font:getHeight() * lines
+		end
 	end,
 	draw = function(this, pos)
 		love.graphics.setColor(this.style.labelfg or this.style.fg)

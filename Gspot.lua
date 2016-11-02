@@ -474,7 +474,7 @@ Gspot.util = {
 		elseif type(font) == 'number' then
 			font = love.graphics.newFont(font)
 		end
-		if pcall(function(font) return font:type() == 'Font' end, font) then
+		if type(font) == 'userdata' and type(font.type) == 'function' and font:type() == 'Font' then
 			this.style.font = font
 			if this.autosize then
 				this.pos.w = font:getWidth(this.label) + (this.style.unit / 2)

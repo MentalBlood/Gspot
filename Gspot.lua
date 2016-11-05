@@ -160,7 +160,21 @@ Gspot.update = function(this, dt)
 	for i = #this.elements, 1, -1 do
 		local element = this.elements[i]
 		if element.display then
-			if element:containspoint(mouse) then
+			local entered
+			if element.elementtype == 'text' then
+				-- Text is treated specially, because it's drawn
+				-- centered vertically without moving its position,
+				-- therefore the apparent position is different from
+				-- the element's pos. Size should be correct, though.
+				local x, y = mouse.x, mouse.y
+				mouse.x = mouse.x - math.floor((element.style.unit / 4) + 0.5)
+				mouse.y = mouse.y - math.floor(((element.style.unit - element.style.font:getHeight()) / 2) + 0.5)
+				entered = element:containspoint(mouse)
+				mouse.x, mouse.y = x, y
+			else
+				entered = element:containspoint(mouse)
+			end
+			if entered then
 				if element.parent and element.parent:type() == 'Gspot.element.scrollgroup' and element ~= element.parent.scrollv and element ~= element.parent.scrollh then
 					if element.parent:containspoint(mouse) then this.mousein = element break end
 				else this.mousein = element break end

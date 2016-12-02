@@ -88,8 +88,8 @@ local mouseR = version >= 001000 and 2 or 'r'
 -- To prevent caching the wrong version, we call it now with no text.
 love.graphics.print("")
 love.graphics.printf("", 0, 0, 0)
-local lgprint = version < 001000 and love.graphics.print or function(text, x, y, ...) love.graphics.print(text, math.floor(x+0.5), math.floor(y+0.5), ...) end
-local lgprintf = version < 001000 and love.graphics.printf or function(text, x, y, ...) love.graphics.printf(text, math.floor(x+0.5), math.floor(y+0.5), ...) end
+local lgprint = version < 001000 and love.graphics.print or function(text, x, y, ...) return love.graphics.print(text, math.floor(x+0.5), math.floor(y+0.5), ...) end
+local lgprintf = version < 001000 and love.graphics.printf or function(text, x, y, ...) return love.graphics.printf(text, math.floor(x+0.5), math.floor(y+0.5), ...) end
 
 local Gspot = {}
 

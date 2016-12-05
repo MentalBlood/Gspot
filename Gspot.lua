@@ -160,21 +160,7 @@ Gspot.update = function(this, dt)
 	for i = #this.elements, 1, -1 do
 		local element = this.elements[i]
 		if element.display then
-			local entered
-			if element.elementtype == 'text' then
-				-- Text is treated specially, because it's drawn
-				-- centered vertically without moving its position,
-				-- therefore the apparent position is different from
-				-- the element's pos. Size should be correct, though.
-				local x, y = mouse.x, mouse.y
-				mouse.x = mouse.x - math.floor((element.style.unit / 4) + 0.5)
-				mouse.y = mouse.y - math.floor(((element.style.unit - element.style.font:getHeight()) / 2) + 0.5)
-				entered = element:containspoint(mouse)
-				mouse.x, mouse.y = x, y
-			else
-				entered = element:containspoint(mouse)
-			end
-			if entered then
+			if element:containspoint(mouse) then
 				if element.parent and element.parent:type() == 'Gspot.element.scrollgroup' and element ~= element.parent.scrollv and element ~= element.parent.scrollh then
 					if element.parent:containspoint(mouse) then this.mousein = element break end
 				else this.mousein = element break end
@@ -516,15 +502,34 @@ Gspot.util = {
 	end,
 	
 	containspoint = function(this, point)
+		local contains = true
 		local pos = point.pos or point
-		if this.shape == 'circle' and this.withinradius(pos, this:getpos() + this.pos.r) then return true
-		elseif this.withinrect(pos, this:getpos()) then return true end
-		return false
+		local thispos, scissor = this:getpos()
+		if this.elementtype == 'text' then
+			-- Text is treated specially, because it's drawn
+			-- centered vertically without moving its position,
+			-- therefore the apparent position is different from
+			-- the element's pos. Size should be correct, though.
+			local x, y = pos.x, pos.y -- save values (avoids creating garbage)
+			pos.x = pos.x - math.floor((this.style.unit / 4) + 0.5)
+			pos.y = pos.y - math.floor(((this.style.unit - this.style.font:getHeight()) / 2) + 0.5)
+			if not this.withinrect(pos, thispos, scissor) then contains = false end
+			pos.x, pos.y = x, y -- restore
+		elseif this.shape == 'circle' then
+			if not this.withinradius(pos, thispos + this.pos.r, scissor) then contains = false end
+		elseif not this.withinrect(pos, thispos, scissor) then
+			contains = false
+		end
+		return contains
 	end,
 	
-	withinrect = function(pos, rect)
+	withinrect = function(pos, rect, scissor)
 		pos = pos.pos or pos
 		rect = rect.pos or rect
+		if scissor then
+			return pos.x >= rect.x and pos.x < (rect.x + rect.w) and pos.y >= rect.y and pos.y < (rect.y + rect.h)
+				and pos.x >= scissor.x and pos.x < scissor.x + scissor.w and pos.y >= scissor.y and pos.y < scissor.y + scissor.h
+		end
 		return pos.x >= rect.x and pos.x < (rect.x + rect.w) and pos.y >= rect.y and pos.y < (rect.y + rect.h)
 	end,
 	
@@ -534,10 +539,16 @@ Gspot.util = {
 		return math.sqrt((pos.x-target.x) * (pos.x-target.x) + (pos.y-target.y) * (pos.y-target.y))
 	end,
 	
-	withinradius = function(pos, circ)
+	withinradius = function(pos, circ, scissor)
 		pos = pos.pos or pos
 		circ = circ.pos or circ
-		if (pos.x - circ.x) * (pos.x - circ.x) + (pos.y - circ.y) * (pos.y - circ.y) < circ.r * circ.r then return true end
+		if (pos.x - circ.x) * (pos.x - circ.x) + (pos.y - circ.y) * (pos.y - circ.y) < circ.r * circ.r then
+			if scissor then
+				return pos.x >= scissor.x and pos.x < scissor.x + scissor.w and pos.y >= scissor.y and pos.y < scissor.y + scissor.h
+			else
+				return true
+			end
+		end
 		return false
 	end,
 	

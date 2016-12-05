@@ -951,7 +951,7 @@ Gspot.scroll = {
 	update = function(this, dt)
 		local mouse = {}
 		mouse.x, mouse.y = this.Gspot:getmouse()
-		if this.withinrect(mouse, this:getpos()) then this.Gspot.mousein = this end
+		if this.withinrect(mouse, this:getpos()) and not this.Gspot.drag then this.Gspot.mousein = this end
 	end,
 	step = function(this, step)
 		if step > 0 then this.values.current = math.max(this.values.current - this.values.step, this.values.min)

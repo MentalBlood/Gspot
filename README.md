@@ -21,5 +21,5 @@
 - cascading element styles
 - timed element-level update functions
 
-_Gspot is free to use under the Zlib/libpng license.
-Fragments attributed to vrld's Quickie : https://github.com/vrld/Quickie_
+_Gspot is free to use under the Zlib/libpng license._  
+_Fragments attributed to vrld's Quickie (now SUIT):_ https://github.com/vrld/SUIT

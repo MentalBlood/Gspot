@@ -796,13 +796,13 @@ Gspot.text = {
 			local width, lines = this.style.font:getWrap(this.label, this.pos.w - (this.style.unit / 2))
 			if type(lines) == "table" then lines = #lines end
 			lines = math.max(lines, 1)
-			this.pos.h = this.style.font:getHeight() * lines
+			this.pos.h = this.style.font:getHeight() * lines + this.style.unit / 4
 		end
 	end,
 	draw = function(this, pos)
 		setColor(this.style.labelfg or this.style.fg)
-		if this.autosize then lgprint(this.label, pos.x + (this.style.unit / 4), pos.y + ((this.style.unit - this.style.font:getHeight()) / 2))
-		else lgprintf(this.label, pos.x + (this.style.unit / 4), pos.y + ((this.style.unit - this.style.font:getHeight()) / 2), (this.autosize and pos.w) or pos.w - (this.style.unit / 2), 'left') end
+		if this.autosize then lgprint(this.label, pos.x + (this.style.unit / 4), pos.y + (this.style.unit / 8))
+		else lgprintf(this.label, pos.x + (this.style.unit / 4), pos.y + (this.style.unit / 8), (this.autosize and pos.w) or pos.w - (this.style.unit / 2), 'left') end
 	end,
 }
 setmetatable(Gspot.text, {__index = Gspot.util, __call = Gspot.text.load})

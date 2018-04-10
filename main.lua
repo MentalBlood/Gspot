@@ -1,7 +1,7 @@
 -- Original author: https://github.com/trubblegum
 -- This is a modified version of https://github.com/trubblegum/Gspot/blob/cf0a49d7d2073686d7ddb32a4fa04e90593d36c4/main.lua
 -- The original program did not include a copyright notice.
--- Modifications © Copyright 2015-2016 Pedro Gimeno Fortea.
+-- Modifications © Copyright 2015-2016, 2018 Pedro Gimeno Fortea.
 --
 -- This software is provided 'as-is', without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.
 -- Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:
@@ -16,12 +16,17 @@ end
 gui = require('Gspot') -- import the library
 --mainmenu = gui() -- create a gui instance. don't have to do this, but you may want a gui for each gamestate so they can talk to each other, and you won't have to recontsruct the gui every time you enter a state
 
+-- 11.0 changes the colour component range from 0-255 to 0-1. Multiplying each
+-- component by DIV converts a 0-255 value to the required version-dependent
+-- range.
+local DIV = love._version_major >= 11 and 1/255 or 1
+
 font = love.graphics.newFont(192)
 
 love.load = function()
 
 	love.graphics.setFont(font)
-	love.graphics.setColor(255, 192, 0, 128) -- just setting these so we know the gui isn't stealing our thunder
+	love.graphics.setColor(255 * DIV, 192 * DIV, 0 * DIV, 128 * DIV) -- just setting these so we know the gui isn't stealing our thunder
 
 	sometext = 'Lörem ipsum dolor sït amet, consectètur adipisicing élit, sed do eiusmod tempoŕ incididunt ut labore et dọlorẹ magna aliquæ.'
 
@@ -47,7 +52,7 @@ love.load = function()
 
 	-- elements' children will be positioned relative to their parent's position
 	group1 = gui:collapsegroup('Group 1', {gui.style.unit, gui.style.unit * 3, 128, gui.style.unit}) -- group(label, pos, optional parent)
-	group1.style.fg = {255, 192, 0, 255}
+	group1.style.fg = {255 * DIV, 192 * DIV, 0 * DIV, 255 * DIV}
 	group1.tip = 'Drag and drop' -- add a tooltip
 	group1.drag = true -- respond to default drag behaviour
 	group1.drop = function(this, bucket) -- respond to drop event
@@ -90,8 +95,8 @@ love.load = function()
 	checkbox.style.labelfg = checkbox.style.fg -- lock label colour
 	checkbox.click = function(this)
 		gui[this.elementtype].click(this) -- calling option's base click() to preserve default functionality, as we're overriding a reserved behaviour
-		if this.value then this.style.fg = {255, 128, 0, 255}
-		else this.style.fg = {255, 255, 255, 255} end
+		if this.value then this.style.fg = {255 * DIV, 128 * DIV, 0 * DIV, 255 * DIV}
+		else this.style.fg = {255 * DIV, 255 * DIV, 255 * DIV, 255 * DIV} end
 	end
 	local checkboxlabel = gui:text('check', {x = 16}, checkbox, true) -- using the autosize flag to resize the element's width to fit the text
 	checkboxlabel.click = function(this, x, y)

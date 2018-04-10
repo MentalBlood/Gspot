@@ -1,7 +1,7 @@
 -- Original author: https://github.com/trubblegum
 -- This is a modified version of https://github.com/trubblegum/Gspot/blob/cf0a49d7d2073686d7ddb32a4fa04e90593d36c4/Gspot.lua
 -- The original program did not include a copyright notice.
--- Modifications © Copyright 2015-2016 Pedro Gimeno Fortea.
+-- Modifications © Copyright 2015-2016, 2018 Pedro Gimeno Fortea.
 --
 -- This software is provided 'as-is', without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.
 -- Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:
@@ -79,6 +79,44 @@ else
 	end
 end
 
+local DIV = version >= 110000 and 1/255 or 1
+
+-- 11.0 compatibility
+local compat_setColor, setColor, fileExists
+if version < 110000 then
+	setColor = love.graphics.setColor
+	fileExists = love.filesystem.exists
+else
+	compat_setColor = function(...)
+		local n = select('#', ...)
+		if n >= 3 then
+			local r, g, b, a = ...
+			if n >= 4 then
+				love.graphics.setColor(r * DIV, g * DIV, b * DIV, a * DIV)
+			else
+				love.graphics.setColor(r * DIV, g * DIV, b * DIV)
+			end
+			return
+		end
+		assert(n == 1, "Invalid number of parameters in setColor()")
+		local t = ...
+		assert(type(t) == "table", "setColor() only accepts a table parameter")
+		if #t >= 4 then
+			love.graphics.setColor(t[1] * DIV, t[2] * DIV, t[3] * DIV, t[4] * DIV)
+		else
+			love.graphics.setColor(t[1] * DIV, t[2] * DIV, t[3] * DIV)
+		end
+	end
+
+	setColor = compat_setColor
+
+	local info = {type = false, size = false, modtime = false}
+	fileExists = function(path)
+		return love.filesystem.getInfo(path, info) ~= nil
+			and (info.type == "file" or info.type == "symlink")
+	end
+end
+
 -- Deal with love.mouse API changes in 0.10
 local mouseL = version >= 001000 and 1 or 'l'
 local mouseR = version >= 001000 and 2 or 'r'
@@ -93,16 +131,45 @@ local lgprintf = version < 001000 and love.graphics.printf or function(text, x, 
 
 local Gspot = {}
 
-Gspot.style = {
+
+Gspot.style = { -- see Gspot.setComponentMax for colour values
 	unit = 16,
 	font = love.graphics.newFont(10),
-	fg = {255, 255, 255, 255},
-	bg = {64, 64, 64, 255},
+	fg = {},
+	bg = {},
 	labelfg = nil, -- defaults to fg when absent
-	default = {96, 96, 96, 255},
-	hilite = {128, 128, 128, 255},
-	focus = {160, 160, 160, 255},
+	default = {},
+	hilite = {},
+	focus = {},
 }
+
+Gspot.setComponentMax = function(this, value)
+	-- 'this' isn't used at all here - it modifies the base class instead.
+	assert(tostring(value) == "255" or value == "native", "Gspot:setColorRange must be 255 or \"native\"")
+	if (Gspot.nativeColorMax or false) ~= (value == "native") then
+		local st = Gspot.style
+		st.fg[1],st.fg[2],st.fg[3],st.fg[4] = 255,255,255,255
+		st.bg[1],st.bg[2],st.bg[3],st.bg[4] =  64, 64, 64,255
+		st.default[1],st.default[2],st.default[3],st.default[4] = 96,96,96,255
+		st.hilite[1],st.hilite[2],st.hilite[3],st.hilite[4] = 128,128,128,255
+		st.focus[1],st.focus[2],st.focus[3],st.focus[4] = 160,160,160,255
+		if value == "native" then
+			Gspot.nativeColorMax = true
+			for i = 1, 4 do
+				st.fg[i] = st.fg[i] * DIV
+				st.bg[i] = st.bg[i] * DIV
+				st.default[i] = st.default[i] * DIV
+				st.hilite[i] = st.hilite[i] * DIV
+				st.focus[i] = st.focus[i] * DIV
+			end
+			setColor = love.graphics.setColor
+		else
+			Gspot.nativeColorMax = nil
+			setColor = compat_setColor
+		end
+	end
+	return Gspot:load()
+end
 
 Gspot.load = function(this)
 	local def = {
@@ -205,9 +272,9 @@ Gspot.draw = function(this)
 		local pos = element:getpos()
 		local tippos = {x = pos.x + (this.style.unit / 2), y = pos.y + (this.style.unit / 2), w = element.style.font:getWidth(element.tip) + this.style.unit, h = this.style.unit}
 		love.graphics.setFont(this.style.font) -- use the default font
-		love.graphics.setColor(this.style.bg)
+		setColor(this.style.bg)
 		this.mousein:rect({x = math.max(0, math.min(tippos.x, love.graphics.getWidth() - (element.style.font:getWidth(element.tip) + this.style.unit))), y = math.max(0, math.min(tippos.y, love.graphics.getHeight() - this.style.unit)), w = tippos.w, h = tippos.h})
-		love.graphics.setColor(this.style.fg)
+		setColor(this.style.fg)
 		lgprint(element.tip, math.max(this.style.unit / 2, math.min(tippos.x + (this.style.unit / 2), love.graphics.getWidth() - (element.style.font:getWidth(element.tip) + (this.style.unit / 2)))), math.max((this.style.unit - element.style.font:getHeight()) / 2, math.min(tippos.y + ((this.style.unit - element.style.font:getHeight()) / 2), (love.graphics.getHeight() - this.style.unit) + ((this.style.unit - element.style.font:getHeight()) / 2))))
 	end
 	love.graphics.setFont(ostyle_font)
@@ -456,20 +523,20 @@ Gspot.util = {
 	end,
 
 	setimage = function(this, img)
-		if type(img) == 'string' and love.filesystem.exists(img) then img = love.graphics.newImage(img) end
+		if type(img) == 'string' and fileExists(img) then img = love.graphics.newImage(img) end
 		if pcall(function(img) return img:type() == 'Image' end, img) then this.img = img
 		else this.img = nil end
 	end,
 
 	drawimg = function(this, pos)
 		local r, g, b, a = love.graphics.getColor()
-		love.graphics.setColor(255, 255, 255, 255)
+		setColor(255, 255, 255, 255)
 		love.graphics.draw(this.img, (pos.x + (pos.w / 2)) - (this.img:getWidth()) / 2, (pos.y + (pos.h / 2)) - (this.img:getHeight() / 2))
 		love.graphics.setColor(r, g, b, a)
 	end,
 
 	setfont = function(this, font, size)
-		if type(font) == 'string' and love.filesystem.exists(font) then
+		if type(font) == 'string' and fileExists(font) then
 			font = love.graphics.newFont(font, size)
 		elseif type(font) == 'number' then
 			font = love.graphics.newFont(font)
@@ -679,10 +746,10 @@ Gspot.group = {
 		return Gspot:add(Gspot:element('group', label, pos, parent))
 	end,
 	draw = function(this, pos)
-		love.graphics.setColor(this.style.bg)
+		setColor(this.style.bg)
 		this:drawshape(pos)
 		if this.label then
-			love.graphics.setColor(this.style.labelfg or this.style.fg)
+			setColor(this.style.labelfg or this.style.fg)
 			lgprint(this.label, pos.x + ((pos.w - this.style.font:getWidth(this.label)) / 2), pos.y + ((this.style.unit - this.style.font:getHeight()) / 2))
 		end
 	end,
@@ -733,7 +800,7 @@ Gspot.text = {
 		end
 	end,
 	draw = function(this, pos)
-		love.graphics.setColor(this.style.labelfg or this.style.fg)
+		setColor(this.style.labelfg or this.style.fg)
 		if this.autosize then lgprint(this.label, pos.x + (this.style.unit / 4), pos.y + ((this.style.unit - this.style.font:getHeight()) / 2))
 		else lgprintf(this.label, pos.x + (this.style.unit / 4), pos.y + ((this.style.unit - this.style.font:getHeight()) / 2), (this.autosize and pos.w) or pos.w - (this.style.unit / 2), 'left') end
 	end,
@@ -772,7 +839,7 @@ Gspot.image = {
 			this:drawimg(pos)
 		end
 		if this.label then
-			love.graphics.setColor(this.style.labelfg or this.style.fg)
+			setColor(this.style.labelfg or this.style.fg)
 			lgprint(this.label, pos.x + ((pos.w - this.style.font:getWidth(this.label)) / 2), (pos.y + pos.h) + ((this.style.unit - this.style.font:getHeight()) / 2))
 		end
 	end,
@@ -786,14 +853,14 @@ Gspot.button = {
 	end,
 	draw = function(this, pos)
 		if this.parent and this.value == this.parent.value then
-			if this == this.Gspot.mousein then love.graphics.setColor(this.style.focus)
-			else love.graphics.setColor(this.style.hilite) end
+			if this == this.Gspot.mousein then setColor(this.style.focus)
+			else setColor(this.style.hilite) end
 		else
-			if this == this.Gspot.mousein then love.graphics.setColor(this.style.hilite)
-			else love.graphics.setColor(this.style.default) end
+			if this == this.Gspot.mousein then setColor(this.style.hilite)
+			else setColor(this.style.default) end
 		end
 		this:drawshape(pos)
-		love.graphics.setColor(this.style.labelfg or this.style.fg)
+		setColor(this.style.labelfg or this.style.fg)
 		if this.shape == 'circle' then
 			if this.img then this:drawimg(pos) end
 			if this.label then lgprint(this.label, (pos.x + pos.r) - (this.style.font:getWidth(this.label) / 2), (this.img and (pos.y + (pos.r * 2)) + ((this.style.unit - this.style.font:getHeight()) / 2)) or (pos.y + pos.r) - (this.style.font:getHeight() / 2)) end
@@ -832,15 +899,15 @@ Gspot.checkbox = {
 	end,
 	click = function(this) this.value = not this.value end,
 	draw = function(this, pos)
-		if this == this.Gspot.mousein then love.graphics.setColor(this.style.hilite)
-		else love.graphics.setColor(this.style.default) end
+		if this == this.Gspot.mousein then setColor(this.style.hilite)
+		else setColor(this.style.default) end
 		this:drawshape(pos)
 		if this.value then
-			love.graphics.setColor(this.style.fg)
+			setColor(this.style.fg)
 			this:drawshape(this.Gspot:pos({x = pos.x + (pos.w / 4), y = pos.y + (pos.h / 4), w = pos.w / 2, h = pos.h / 2, r = pos.r and pos.r / 2}))
 		end
 		if this.label then
-			love.graphics.setColor(this.style.labelfg or this.style.fg)
+			setColor(this.style.labelfg or this.style.fg)
 			lgprint(this.label, pos.x + pos.w + (this.style.unit / 2), pos.y + ((this.pos.h - this.style.font:getHeight()) / 2))
 		end
 	end,
@@ -868,11 +935,11 @@ Gspot.input = {
 	end,
 	draw = function(this, pos)
 		if this == this.Gspot.focus then
-			love.graphics.setColor(this.style.bg)
+			setColor(this.style.bg)
 		elseif this == this.Gspot.mousein then
-			love.graphics.setColor(this.style.hilite)
+			setColor(this.style.hilite)
 		else
-			love.graphics.setColor(this.style.default)
+			setColor(this.style.default)
 		end
 		this:drawshape(pos)
 		-- Margin of edit box is unit/4 on each side, so total margin is unit/2
@@ -881,7 +948,7 @@ Gspot.input = {
 			-- We don't want to undo the current scissor, to avoid printing text where it shouldn't be
 			-- (e.g. partially visible edit box inside a viewport) so we clip the current scissor.
 			local sx, sy, sw, sh = clipScissor(pos.x + this.style.unit / 4, pos.y, editw, pos.h)
-			love.graphics.setColor(this.style.fg)
+			setColor(this.style.fg)
 			local str = this.ispassword and string.rep(this.passwordchar,utf8len(tostring(this.value))) or tostring(this.value)
 			-- cursorx is the position relative to the start of the edit box
 			-- (add pos.x + this.style.unit/4 to obtain the screen X coordinate)
@@ -904,7 +971,7 @@ Gspot.input = {
 			love.graphics.setScissor(sx, sy, sw, sh)
 		end
 		if this.label then
-			love.graphics.setColor(this.style.labelfg or this.style.fg)
+			setColor(this.style.labelfg or this.style.fg)
 			lgprint(this.label, pos.x - ((this.style.unit / 2) + this.style.font:getWidth(this.label)), pos.y + ((this.pos.h - this.style.font:getHeight()) / 2))
 		end
 	end,
@@ -1010,11 +1077,11 @@ Gspot.scroll = {
 	end,
 	done = function(this) this.Gspot:unfocus() end,
 	draw = function(this, pos)
-		if this == this.Gspot.mousein or this == this.Gspot.drag or this == this.Gspot.focus then love.graphics.setColor(this.style.default)
-		else love.graphics.setColor(this.style.bg) end
+		if this == this.Gspot.mousein or this == this.Gspot.drag or this == this.Gspot.focus then setColor(this.style.default)
+		else setColor(this.style.bg) end
 		this:rect(pos)
-		if this == this.Gspot.mousein or this == this.Gspot.drag or this == this.Gspot.focus then love.graphics.setColor(this.style.fg)
-		else love.graphics.setColor(this.style.hilite) end
+		if this == this.Gspot.mousein or this == this.Gspot.drag or this == this.Gspot.focus then setColor(this.style.fg)
+		else setColor(this.style.hilite) end
 		local hs = this.style.hs
 		if hs == 'auto' then
 			if this.values.axis == 'vertical' then
@@ -1028,7 +1095,7 @@ Gspot.scroll = {
 		local handlepos = this.Gspot:pos({x = (this.values.axis == 'horizontal' and math.min(pos.x + (pos.w - hs), math.max(pos.x, pos.x + ((pos.w - hs) * (this.values.current / (this.values.max - this.values.min)))))) or pos.x, y = (this.values.axis == 'vertical' and math.min(pos.y + (pos.h - hs), math.max(pos.y, pos.y + ((pos.h - hs) * (this.values.current / (this.values.max - this.values.min)))))) or pos.y, w = this.values.axis == 'horizontal' and hs or this.style.unit, h = this.values.axis == 'vertical' and hs or this.style.unit, r = pos.r})
 		this:drawshape(handlepos)
 		if this.label then
-			love.graphics.setColor(this.style.labelfg or this.style.fg)
+			setColor(this.style.labelfg or this.style.fg)
 			lgprint(this.label, (this.values.axis == 'horizontal' and pos.x - ((this.style.unit / 2) + this.style.font:getWidth(this.label))) or pos.x + ((pos.w - this.style.font:getWidth(this.label)) / 2), (this.values.axis == 'vertical' and (pos.y + pos.h) + ((this.style.unit - this.style.font:getHeight()) / 2)) or pos.y + ((this.style.unit - this.style.font:getHeight()) / 2))
 		end
 	end,
@@ -1047,10 +1114,10 @@ Gspot.scrollgroup = {
 		return element
 	end,
 	draw = function(this, pos)
-		love.graphics.setColor(this.style.bg)
+		setColor(this.style.bg)
 		this:drawshape(pos)
 		if this.label then
-			love.graphics.setColor(this.style.labelfg or this.style.fg)
+			setColor(this.style.labelfg or this.style.fg)
 			lgprint(this.label, pos.x + ((pos.w - this.style.font:getWidth(this.label)) / 2), pos.y + ((this.style.unit - this.style.font:getHeight()) / 2))
 		end
 	end,
@@ -1107,7 +1174,7 @@ Gspot.feedback = {
 		this.style.fg = {color[1], color[2], color[3], this.alpha}
 	end,
 	draw = function(this, pos)
-		love.graphics.setColor(this.style.fg)
+		setColor(this.style.fg)
 		lgprint(this.label, pos.x + (this.style.unit / 4), pos.y + ((this.style.unit - this.style.font:getHeight()) / 2))
 	end,
 }
@@ -1133,12 +1200,12 @@ Gspot.progress = {
 		end
 	end,
 	draw = function(this, pos)
-		love.graphics.setColor(this.style.default)
+		setColor(this.style.default)
 		this:drawshape(pos)
-		love.graphics.setColor(this.style.fg)
+		setColor(this.style.fg)
 		this:rect({x = pos.x, y = pos.y, w = pos.w * (this.values.current / this.values.max), h = pos.h})
 		if this.label then
-			love.graphics.setColor(this.style.labelfg or this.style.fg)
+			setColor(this.style.labelfg or this.style.fg)
 			lgprint(this.label, pos.x - ((this.style.unit / 2) + this.style.font:getWidth(this.label)), pos.y + ((this.pos.h - this.style.font:getHeight()) / 2))
 		end
 	end,
@@ -1153,4 +1220,4 @@ Gspot.progress = {
 setmetatable(Gspot.progress, {__index = Gspot.util, __call = Gspot.progress.load})
 
 
-return Gspot:load()
+return Gspot:setComponentMax("native")

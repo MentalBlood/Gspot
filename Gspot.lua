@@ -79,7 +79,7 @@ else
 	end
 end
 
-local DIV = version >= 110000 and 1/255 or 1
+local DIV = version >= 110000 and 255 or 1
 
 -- 11.0 compatibility
 local compat_setColor, setColor, fileExists
@@ -92,9 +92,9 @@ else
 		if n >= 3 then
 			local r, g, b, a = ...
 			if n >= 4 then
-				love.graphics.setColor(r * DIV, g * DIV, b * DIV, a * DIV)
+				love.graphics.setColor(r / DIV, g / DIV, b / DIV, a / DIV)
 			else
-				love.graphics.setColor(r * DIV, g * DIV, b * DIV)
+				love.graphics.setColor(r / DIV, g / DIV, b / DIV)
 			end
 			return
 		end
@@ -102,9 +102,9 @@ else
 		local t = ...
 		assert(type(t) == "table", "setColor() only accepts a table parameter")
 		if #t >= 4 then
-			love.graphics.setColor(t[1] * DIV, t[2] * DIV, t[3] * DIV, t[4] * DIV)
+			love.graphics.setColor(t[1] / DIV, t[2] / DIV, t[3] / DIV, t[4] / DIV)
 		else
-			love.graphics.setColor(t[1] * DIV, t[2] * DIV, t[3] * DIV)
+			love.graphics.setColor(t[1] / DIV, t[2] / DIV, t[3] / DIV)
 		end
 	end
 
@@ -156,11 +156,11 @@ Gspot.setComponentMax = function(this, value)
 		if value == "native" then
 			Gspot.nativeColorMax = true
 			for i = 1, 4 do
-				st.fg[i] = st.fg[i] * DIV
-				st.bg[i] = st.bg[i] * DIV
-				st.default[i] = st.default[i] * DIV
-				st.hilite[i] = st.hilite[i] * DIV
-				st.focus[i] = st.focus[i] * DIV
+				st.fg[i] = st.fg[i] / DIV
+				st.bg[i] = st.bg[i] / DIV
+				st.default[i] = st.default[i] / DIV
+				st.hilite[i] = st.hilite[i] / DIV
+				st.focus[i] = st.focus[i] / DIV
 			end
 			setColor = love.graphics.setColor
 		else

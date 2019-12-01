@@ -345,7 +345,7 @@ Gspot.textinput = function(this, key)
 end
 
 Gspot.getmouse = function(this)
-	return love.mouse.getPosition()
+	return TLfres.getMousePosition(windowWidth, windowHeight)
 end
 
 -- legacy
@@ -751,7 +751,7 @@ Gspot.group = {
 		this:drawshape(pos)
 		if this.label then
 			setColor(this.style.labelfg or this.style.fg)
-			lgprint(this.label, pos.x + ((pos.w - this.style.font:getWidth(this.label)) / 2), pos.y + ((this.style.unit - this.style.font:getHeight()) / 2))
+			lgprint(this.label, pos.x + ((pos.w - this.style.font:getWidth(this.label)) / 2), pos.y)
 		end
 	end,
 }
@@ -935,6 +935,7 @@ Gspot.input = {
 		end
 	end,
 	draw = function(this, pos)
+		shift = (this.style.unit / 2) + this.style.font:getWidth(this.label)
 		if this == this.Gspot.focus then
 			setColor(this.style.bg)
 		elseif this == this.Gspot.mousein then
@@ -942,13 +943,13 @@ Gspot.input = {
 		else
 			setColor(this.style.default)
 		end
-		this:drawshape(pos)
+		this:drawshape({x=pos.x + shift, y=pos.y, w=pos.w - shift, h=pos.h})
 		-- Margin of edit box is unit/4 on each side, so total margin is unit/2
 		local editw = pos.w - this.style.unit / 2
 		if editw >= 1 then -- won't be visible otherwise and we need room for the cursor
 			-- We don't want to undo the current scissor, to avoid printing text where it shouldn't be
 			-- (e.g. partially visible edit box inside a viewport) so we clip the current scissor.
-			local sx, sy, sw, sh = clipScissor(pos.x + this.style.unit / 4, pos.y, editw, pos.h)
+			local sx, sy, sw, sh = clipScissor(pos.x + this.style.unit / 4 + shift, pos.y, editw - shift, pos.h)
 			setColor(this.style.fg)
 			local str = this.ispassword and string.rep(this.passwordchar,utf8len(tostring(this.value))) or tostring(this.value)
 			-- cursorx is the position relative to the start of the edit box
@@ -959,21 +960,21 @@ Gspot.input = {
 				this.textorigin = math.min(0, this.textorigin - cursorx)
 				cursorx = 0
 			end
-			if cursorx > editw - 1 then
-				this.textorigin = math.min(0, this.textorigin - cursorx + editw - 1)
-				cursorx = editw - 1
+			if cursorx > editw - 1 - shift then
+				this.textorigin = math.min(0, this.textorigin - cursorx + editw - 1 - shift)
+				cursorx = editw - 1 - shift
 			end
 			-- print the whole text and let the scissor do the clipping
-			lgprint(str, pos.x + this.style.unit / 4 + this.textorigin, pos.y + (pos.h - this.style.font:getHeight()) / 2)
+			lgprint(str, pos.x + this.style.unit / 4 + this.textorigin + shift, pos.y + (pos.h - this.style.font:getHeight()) / 2)
 			if this == this.Gspot.focus and this.cursorlife < 0.5 then
-				love.graphics.rectangle("fill", pos.x + this.style.unit / 4 + cursorx, pos.y + this.style.unit / 8, 1, pos.h - this.style.unit / 4)
+				love.graphics.rectangle("fill", pos.x + this.style.unit / 4 + cursorx + shift, pos.y + this.style.unit / 8, 1, pos.h - this.style.unit / 4)
 			end
 			-- restore current scissor
 			love.graphics.setScissor(sx, sy, sw, sh)
 		end
 		if this.label then
 			setColor(this.style.labelfg or this.style.fg)
-			lgprint(this.label, pos.x - ((this.style.unit / 2) + this.style.font:getWidth(this.label)), pos.y + ((this.pos.h - this.style.font:getHeight()) / 2))
+			lgprint(this.label, pos.x, pos.y + ((this.pos.h - this.style.font:getHeight()) / 2))
 		end
 	end,
 	click = function(this) this:focus() end,
@@ -1119,7 +1120,7 @@ Gspot.scrollgroup = {
 		this:drawshape(pos)
 		if this.label then
 			setColor(this.style.labelfg or this.style.fg)
-			lgprint(this.label, pos.x + ((pos.w - this.style.font:getWidth(this.label)) / 2), pos.y + ((this.style.unit - this.style.font:getHeight()) / 2))
+			lgprint(this.label, pos.x + ((pos.w - this.style.font:getWidth(this.label)) / 2), pos.y)
 		end
 	end,
 }
